@@ -1,0 +1,2569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Manual PRO - Special Edition</title>
+    <!-- Tailwind CSS for modern interactive layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for fitness icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for smooth performance charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2canvas for taking accurate screenshot of the daily log -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+            background-color: #090d16;
+        }
+        /* Glassmorphism details */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+        /* Active status pulse keyframe */
+        @keyframes subtlePulse {
+            0%, 100% { border-color: rgba(6, 182, 212, 0.4); box-shadow: 0 0 8px rgba(6, 182, 212, 0.1); }
+            50% { border-color: rgba(16, 185, 129, 0.8); box-shadow: 0 0 16px rgba(16, 185, 129, 0.25); }
+        }
+        .active-date-border {
+            animation: subtlePulse 3s infinite ease-in-out;
+        }
+        /* Dragging styles */
+        .card-dragging {
+            opacity: 0.4;
+            border: 2px dashed #06b6d4 !important;
+            background: rgba(6, 182, 212, 0.05) !important;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col pb-16 select-none">
+
+    <!-- Sticky Navigation & Header -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800 shadow-2xl">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-cyan-500 to-emerald-500 text-slate-950 p-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-dumbbell text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">TRAINING MANUAL PRO</h1>
+                    <p class="text-[10px] text-slate-400 font-medium font-sans">鍛える・整える・超回復する</p>
+                </div>
+            </div>
+
+            <!-- Global Rest Countdown Timer Widget -->
+            <div class="flex items-center gap-3 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-xl w-full sm:w-auto justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                    <div>
+                        <span class="block text-[8px] text-slate-500 font-bold tracking-widest uppercase">REST INTERVAL</span>
+                        <span id="globalTimerDisplay" class="text-lg font-mono font-bold text-cyan-400">01:30</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="changeTimerDuration(30)" class="bg-slate-800 hover:bg-slate-700 text-[10px] px-1.5 py-1 rounded text-slate-300">30s</button>
+                    <button onclick="changeTimerDuration(90)" class="bg-slate-800 hover:bg-slate-700 text-[10px] px-1.5 py-1 rounded text-slate-300">90s</button>
+                    <button onclick="changeTimerDuration(180)" class="bg-slate-800 hover:bg-slate-700 text-[10px] px-1.5 py-1 rounded text-slate-300">3m</button>
+                    <button id="timerToggleBtn" onclick="toggleGlobalTimer()" class="bg-cyan-500 hover:bg-cyan-600 text-slate-950 p-2 rounded-lg transition active:scale-95">
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Day Navigation Tabs -->
+        <div class="border-t border-slate-800/80 bg-slate-950/40">
+            <div class="max-w-4xl mx-auto flex overflow-x-auto">
+                <button onclick="switchDay('home')" id="tab-home" class="day-tab flex-1 min-w-[90px] py-3 text-center border-b-2 border-transparent text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/20 transition-all">
+                    🏠 ホーム
+                </button>
+                <button onclick="switchDay('mon')" id="tab-mon" class="day-tab flex-1 min-w-[110px] py-3 text-center border-b-2 border-transparent text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/20 transition-all">
+                    月：胸・背中
+                </button>
+                <button onclick="switchDay('wed')" id="tab-wed" class="day-tab flex-1 min-w-[110px] py-3 text-center border-b-2 border-transparent text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/20 transition-all">
+                    水：肩・腕
+                </button>
+                <button onclick="switchDay('fri')" id="tab-fri" class="day-tab flex-1 min-w-[110px] py-3 text-center border-b-2 border-transparent text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/20 transition-all">
+                    金：脚
+                </button>
+                <button onclick="switchDay('sun')" id="tab-sun" class="day-tab flex-1 min-w-[110px] py-3 text-center border-b-2 border-transparent text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/20 transition-all">
+                    日：弱点・回復
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Date Display Alert Banner -->
+    <div class="max-w-4xl mx-auto w-full px-4 mt-4">
+        <div class="bg-gradient-to-r from-cyan-950/40 to-slate-900/60 border border-cyan-800/30 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-xl">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20">
+                    <i class="fa-regular fa-calendar-check text-lg"></i>
+                </div>
+                <div>
+                    <span class="block text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">SELECTED RECORDING DATE</span>
+                    <span id="globalActiveDateText" class="text-base font-black text-white">XXXX年XX月XX日</span>
+                </div>
+            </div>
+            <div class="bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800 w-full sm:w-auto text-center sm:text-right">
+                <span class="block text-[8px] text-slate-500 font-extrabold uppercase tracking-widest">TODAY'S TARGET REGION</span>
+                <span id="globalActiveTargetText" class="text-sm font-bold text-emerald-400">取得中...</span>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-4xl w-full mx-auto px-4 mt-4 flex-grow">
+
+        <!-- ========================================== -->
+        <!--                🏠 ホーム画面               -->
+        <!-- ========================================== -->
+        <div id="section-home" class="day-section space-y-6 animate-fadeIn">
+            <!-- Quick Motivation & Today's Target -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-2 bg-gradient-to-r from-slate-900 to-slate-950 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between shadow-xl">
+                    <div>
+                        <span class="text-[10px] text-cyan-400 font-extrabold uppercase tracking-widest">WORKOUT TARGET SCHEDULE</span>
+                        <h2 id="homeTodayTarget" class="text-xl font-black text-white mt-1">取得中...</h2>
+                        <p class="text-xs text-slate-400 mt-2">
+                            カレンダーの日付を選択すると、その日に紐づく記録フォームが読み込まれます。
+                            各種目の解説アコーディオン▼を開いて、セットの「＋」追加ボタンや重量・回数、進捗チェックボタンをご活用ください。
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-800/50 flex items-center justify-between">
+                        <span class="text-[11px] text-slate-400 font-medium" id="homeTodayDateString">2026年6月26日</span>
+                        <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">Auto-Saving Connected</span>
+                    </div>
+                </div>
+
+                <!-- Today's Weight Input Form -->
+                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between shadow-xl">
+                    <div>
+                        <span class="text-[10px] text-emerald-400 font-extrabold uppercase tracking-widest">WEIGHT LOG</span>
+                        <h3 class="text-xs text-slate-400 mt-1">選択日の体重を記録</h3>
+                    </div>
+                    <div class="mt-3">
+                        <div class="relative flex items-center">
+                            <input type="number" step="0.01" id="quickWeightInput" placeholder="00.00" class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-400 rounded-xl py-2.5 px-3 text-lg font-bold font-mono text-slate-100 placeholder-slate-700 focus:outline-none transition">
+                            <span class="absolute right-3 text-sm font-bold text-slate-500">kg</span>
+                        </div>
+                    </div>
+                    <button onclick="saveQuickWeight()" class="mt-3 w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-xl text-xs tracking-wider transition active:scale-[0.98]">
+                        体重を保存してグラフ反映
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar & Month Picker Split -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- 1. Monthly Calendar -->
+                <div class="lg:col-span-5 bg-slate-900/40 p-5 rounded-2xl border border-slate-800 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-regular fa-calendar text-cyan-400"></i>
+                                <span id="calendarMonthTitle">2026年6月</span>
+                            </h3>
+                            <div class="flex gap-1">
+                                <button onclick="navigateCalendar(-1)" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-lg text-xs text-slate-300 transition" title="前月"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button onclick="setCalendarToToday()" class="bg-slate-800 hover:bg-slate-700 text-xs px-2.5 rounded-lg text-slate-300 transition font-semibold">今日</button>
+                                <button onclick="navigateCalendar(1)" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-lg text-xs text-slate-300 transition" title="翌月"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Calendar Grid -->
+                        <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-500 border-b border-slate-850 pb-2 mb-2">
+                            <div class="text-rose-400">日</div>
+                            <div>月</div>
+                            <div>火</div>
+                            <div>水</div>
+                            <div>木</div>
+                            <div>金</div>
+                            <div class="text-cyan-400">土</div>
+                        </div>
+                        <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs">
+                            <!-- Generated Dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Highlight Guide description -->
+                    <div class="mt-4 pt-4 border-t border-slate-800/60 space-y-1.5">
+                        <span class="block text-[9px] text-slate-500 font-extrabold uppercase tracking-widest">CALENDAR GUIDE</span>
+                        <div class="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-400">
+                            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>月：胸・背</span>
+                            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>水：肩・腕</span>
+                            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>金：脚トレ</span>
+                            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-pink-400"></span>日：弱点・回復</span>
+                            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>緑点：体重記録済</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Selected Log Quick Preview -->
+                <div class="lg:col-span-7 bg-slate-900/60 p-5 rounded-2xl border border-slate-800 shadow-xl flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-list text-cyan-400"></i>
+                                <span id="previewSelectedDateTitle" class="text-sm font-bold text-white">日付を選択してください</span>
+                            </div>
+                            <span id="previewSelectedTargetTag" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400">予定部位</span>
+                        </div>
+
+                        <!-- Mini Preview of Recorded Session -->
+                        <div class="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                            <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-850 flex items-center justify-between">
+                                <span class="text-xs text-slate-400">その日の記録体重:</span>
+                                <span id="previewWeightValue" class="text-sm font-bold text-emerald-400 font-mono">-- kg</span>
+                            </div>
+
+                            <div class="space-y-2">
+                                <h4 class="text-xs font-bold text-slate-300">🏋️‍♂️ 筋トレ実績プレビュー</h4>
+                                <div id="previewWorkoutItems" class="space-y-1.5 text-xs text-slate-400">
+                                    <!-- Dynamic -->
+                                </div>
+                            </div>
+
+                            <div class="space-y-2 pt-2 border-t border-slate-850/50">
+                                <h4 class="text-xs font-bold text-emerald-400">🏃‍♂️ 有酸素運動実績プレビュー</h4>
+                                <div id="previewCardioItems" class="space-y-1.5 text-xs text-slate-400">
+                                    <!-- Dynamic -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jump Action Buttons -->
+                    <div class="pt-4 border-t border-slate-800/80 mt-4 flex flex-col sm:flex-row gap-2">
+                        <button onclick="jumpToCurrentDayForm()" class="flex-1 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-slate-950 font-bold py-2.5 rounded-xl text-xs tracking-wider transition duration-200 shadow-lg shadow-cyan-500/10 active:scale-[0.98]">
+                            <i class="fa-regular fa-pen-to-square mr-1"></i> この日のトレーニングを記録・編集する
+                        </button>
+                        <button onclick="exportFullWorkoutScreenshot()" class="bg-slate-850 hover:bg-slate-750 text-slate-200 font-bold px-4 py-2.5 rounded-xl text-xs tracking-wider transition active:scale-[0.98] flex items-center justify-center gap-1.5 border border-slate-750 shadow-md">
+                            <i class="fa-solid fa-camera-retro text-cyan-400"></i> 📸 レポート画像保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weight Progress Trend -->
+            <div class="bg-slate-900/40 p-5 rounded-2xl border border-slate-800 shadow-xl">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b border-slate-850 pb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                            <span>体重推移 & 進捗グラフ</span>
+                        </h3>
+                        <p class="text-[11px] text-slate-400 mt-1 font-sans">選択したスパンでの体重変化と、2週間平均の推移トレンド</p>
+                    </div>
+
+                    <!-- Range Selector buttons -->
+                    <div class="flex flex-wrap gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-850">
+                        <button onclick="updateChartRange('1w')" id="btn-range-1w" class="range-btn text-[10px] px-2.5 py-1 rounded-lg text-slate-400 font-bold hover:text-slate-100 transition-colors">1週間</button>
+                        <button onclick="updateChartRange('2w')" id="btn-range-2w" class="range-btn text-[10px] px-2.5 py-1 rounded-lg text-slate-400 font-bold hover:text-slate-100 transition-colors">2週間</button>
+                        <button onclick="updateChartRange('1m')" id="btn-range-1m" class="range-btn text-[10px] px-2.5 py-1 rounded-lg text-slate-400 font-bold hover:text-slate-100 transition-colors">1ヶ月</button>
+                        <button onclick="updateChartRange('3m')" id="btn-range-3m" class="range-btn text-[10px] px-2.5 py-1 rounded-lg text-slate-400 font-bold hover:text-slate-100 transition-colors">3ヶ月</button>
+                        <button onclick="updateChartRange('6m')" id="btn-range-6m" class="range-btn text-[10px] px-2.5 py-1 rounded-lg text-slate-400 font-bold hover:text-slate-100 transition-colors">半年</button>
+                        <button onclick="updateChartRange('1y')" id="btn-range-1y" class="range-btn text-[10px] px-2.5 py-1 rounded-lg text-slate-400 font-bold hover:text-slate-100 transition-colors">1年</button>
+                        <button onclick="updateChartRange('all')" id="btn-range-all" class="range-btn text-[10px] px-2.5 py-1 rounded-lg text-slate-400 font-bold hover:text-slate-100 transition-colors">すべて</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    <!-- Graph Canvas -->
+                    <div class="lg:col-span-8 bg-slate-950/40 p-3 rounded-xl border border-slate-850">
+                        <div class="relative h-[250px] w-full">
+                            <canvas id="weightTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 2-Week Block Analysis -->
+                    <div class="lg:col-span-4 space-y-3">
+                        <span class="block text-[10px] text-cyan-400 font-extrabold uppercase tracking-widest">2-WEEKLY TRENDS</span>
+                        <h4 class="text-xs text-slate-300 font-bold">直近2週間ごとの体重推移分析</h4>
+                        <div id="twoWeekBlocksContainer" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                            <p class="text-xs text-slate-500 italic">データが不足しています。数日分の体重を記録すると推移データがここに生成されます。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search, Add, & Control Toolbar -->
+        <div id="manualToolbar" class="flex flex-col sm:flex-row gap-3 justify-between items-center mb-6 hidden">
+            <!-- Search & Actions -->
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="filterExercises()" placeholder="種目名やターゲット部位で検索..." class="w-full bg-slate-900/80 border border-slate-800 focus:border-cyan-500 rounded-xl py-2 pl-9 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition">
+                </div>
+                <!-- Add Custom Exercise Trigger -->
+                <button onclick="openAddExerciseModal()" class="bg-cyan-500 hover:bg-cyan-600 text-slate-950 text-xs font-black py-2.5 px-4 rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20 active:scale-95">
+                    <i class="fa-solid fa-plus-circle"></i> 種目を追加
+                </button>
+            </div>
+
+            <!-- Open / Close All Controllers -->
+            <div class="flex gap-2 w-full sm:w-auto">
+                <button onclick="setAllCardsOpen(true)" class="flex-1 sm:flex-initial bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 py-2 px-3.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-angles-down"></i> すべて展開
+                </button>
+                <button onclick="setAllCardsOpen(false)" class="flex-1 sm:flex-initial bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 py-2 px-3.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-angles-up"></i> すべて閉じる
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!--           💪 トレーニング詳細セクション    -->
+        <!-- ========================================== -->
+        <!-- Tab sections placeholder for dynamic JS cards rendering -->
+        <div id="section-mon" class="day-section space-y-4 hidden"></div>
+        <div id="section-wed" class="day-section space-y-4 hidden"></div>
+        <div id="section-fri" class="day-section space-y-4 hidden"></div>
+        <div id="section-sun" class="day-section space-y-4 hidden"></div>
+
+    </main>
+
+    <!-- Invisible Template Area for Generating the Beautiful HD Screenshot Report -->
+    <div class="fixed top-[-9999px] left-[-9999px] z-[-50] w-[750px] bg-[#090d16] border border-[#1e293b] p-8 rounded-[24px]" id="screenshotExportArea">
+        <div class="flex justify-between items-center border-b border-[#1e293b] pb-6 mb-6">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-cyan-500 to-emerald-500 text-slate-950 p-2.5 rounded-xl">
+                    <i class="fa-solid fa-dumbbell text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">TRAINING REPORT PRO</h1>
+                    <p class="text-[10px] text-[#94a3b8] font-sans">Body Transformation Daily Log</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p id="ssReportDateStr" class="text-lg font-black text-white font-mono">2026/06/26</p>
+                <p id="ssReportWeightStr" class="text-sm font-bold text-[#10b981] font-mono">Weight: -- kg</p>
+            </div>
+        </div>
+
+        <div class="space-y-5">
+            <!-- Target Section Banner in Image -->
+            <div class="bg-[#0f172a]/60 border border-[#334155]/50 p-4 rounded-xl flex justify-between items-center">
+                <span class="text-xs text-[#94a3b8] font-extrabold uppercase tracking-widest">Target Focus Day</span>
+                <span id="ssReportTargetTag" class="text-xs font-bold text-cyan-400 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20">--</span>
+            </div>
+
+            <!-- Workouts list in Image -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-extrabold text-white flex items-center gap-2 border-b border-[#1e293b] pb-2">
+                    <span class="w-1.5 h-3 bg-cyan-500 rounded-full"></span> 🏋️‍♂️ 筋トレ実績（セット・重量・回数）
+                </h3>
+                <div id="ssReportWorkoutList" class="space-y-2.5">
+                    <!-- Dynamic Rows -->
+                </div>
+            </div>
+
+            <!-- Cardio list in Image -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-extrabold text-emerald-400 flex items-center gap-2 border-b border-[#1e293b] pb-2">
+                    <span class="w-1.5 h-3 bg-emerald-500 rounded-full"></span> 🏃‍♂️ 有酸素運動実績
+                </h3>
+                <div id="ssReportCardioList" class="space-y-2 text-xs text-[#94a3b8]">
+                    <!-- Dynamic Rows -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer watermark inside export template -->
+        <div class="mt-8 pt-4 border-t border-[#1e293b] flex justify-between items-center text-[10px] text-[#475569]">
+            <span>Generated via Gym Manual Pro System</span>
+            <span>Focus • Consistency • Recovery</span>
+        </div>
+    </div>
+
+    <!-- Add Custom Exercise Modal Dialog -->
+    <div id="addExerciseModal" class="fixed inset-0 bg-slate-950/80 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-md font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus"></i> 新しい種目を作成・追加
+                </h3>
+                <button onclick="closeAddExerciseModal()" class="text-slate-400 hover:text-slate-100"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="addExerciseForm" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">対象曜日</label>
+                    <select id="modalDay" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200">
+                        <option value="mon">月曜日：胸・背中</option>
+                        <option value="wed">水曜日：肩・腕</option>
+                        <option value="fri">金曜日：脚</option>
+                        <option value="sun">日曜日：弱点・回復</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">種目名 *</label>
+                    <input type="text" id="modalName" placeholder="例: ハンマー強度プレス" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-cyan-500" required>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">難易度 (星1〜5)</label>
+                        <input type="number" id="modalStars" min="1" max="5" value="4" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">目安負荷 / 回数</label>
+                        <input type="text" id="modalLoad" placeholder="例: 8-10回 × 3set" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">テンポ設定</label>
+                        <input type="text" id="modalTempo" placeholder="例: 2-0-1-0" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">インターバル</label>
+                        <input type="text" id="modalInterval" placeholder="例: 2分" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">ターゲットタグ (スペース区切り)</label>
+                    <input type="text" id="modalTarget" placeholder="例: 大胸筋上部 厚み ストレッチ" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">種目要約説明</label>
+                    <input type="text" id="modalDesc" placeholder="例: 軌道を安定させ大胸筋の上部のみを単一刺激" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">正しい動作・意識</label>
+                    <textarea id="modalCorrect" placeholder="例: 軌道に合わせて斜め上に押し出す。常に上部を緊張状態にする。" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200" rows="1"></textarea>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">NG動作・失敗例</label>
+                    <textarea id="modalIncorrect" placeholder="例: 肩がすくんで僧帽筋で上げてしまう。" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200" rows="1"></textarea>
+                </div>
+                
+                <!-- Advanced Form Sections -->
+                <div class="border-t border-slate-800 pt-3 space-y-3">
+                    <h4 class="font-extrabold text-cyan-400 uppercase tracking-wider text-[10px]">詳細実施手順 & 各種3大指標</h4>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">フォーム実施手順 (1ステップ1行で入力)</label>
+                        <textarea id="modalSteps" placeholder="手順①: シートを設定する&#10;手順②: 軽く前傾して胸を張る&#10;手順③: 対象へ向けて力強く挙上する" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 font-sans" rows="3"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">フォーム実施手順下の簡単な注釈・ポイント</label>
+                        <input type="text" id="modalStepsNote" placeholder="例: 最も下ろした位置で一瞬静止させると効果大です。" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">効き確認</label>
+                            <input type="text" id="modalCheckEfficacy" placeholder="例: 対象部に筋肉痛や強い張りがあるか" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-slate-200">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">重量UP条件</label>
+                            <input type="text" id="modalWeightUpCondition" placeholder="例: 10回3セット成功で次回重量加算" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-slate-200">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">怪我予防</label>
+                            <input type="text" id="modalInjuryPrevention" placeholder="例: 関関節を無理に内旋させない" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-slate-200">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-4 flex gap-2">
+                    <button type="button" onclick="closeAddExerciseModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 font-bold py-2 rounded-xl text-slate-300">キャンセル</button>
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 font-bold py-2 rounded-xl text-slate-950 shadow-lg shadow-cyan-500/20">保存・作成</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Notification Toast -->
+    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 glass-panel border border-slate-800 text-cyan-400 text-xs py-2.5 px-5 rounded-full shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none flex items-center gap-2 z-50">
+        <i class="fa-regular fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">データを保存しました</span>
+    </div>
+
+    <!-- Main Logic Script -->
+    <script>
+        // Default Master Exercises Database with Complete Professional Fit Guide (Form, Steps, Check, Injury, etc.)
+        const defaultExercises = [
+            // --- 月曜日 (mon) ---
+            {
+                id: "ex_bench_press",
+                day: "mon",
+                name: "ベンチプレス",
+                stars: 5,
+                desc: "月曜メイン種目 / 胸全体の筋肥大と厚みの土台作り",
+                target: "大胸筋 胸全体 筋肥大 厚み",
+                load: "6-8回 × 4set",
+                tempo: "2-0-1-0",
+                interval: "2分〜3分",
+                correct: "バーを胸下部に下ろした際、前腕が床と垂直を維持する。胸でバーの重さを完全に受け止める感覚。",
+                incorrect: "肩甲骨が立ち上がり、肩が前に出る。バーが跳ね返る（バウンディング）。肘が外に開きすぎる。",
+                steps: [
+                    "ベンチに横たわり、肩甲骨を寄せて下制し、固定する。",
+                    "足裏をしっかりと地面につけ、胸を張ってブリッジを作る。",
+                    "バーをラックから外し、乳頭のやや上（胸下部）へ下ろす。",
+                    "胸の伸縮を意識しながら、真上に向かって強く押し切る。"
+                ],
+                stepsNote: "バーを下ろした位置で1秒静止させ、バウンドさせずに大胸筋の力だけで押し上げます。",
+                checkEfficacy: "セット直後に大胸筋全体（特に外側と中央）に強い熱感とパンプアップを感じられるか。",
+                weightUpCondition: "目安の回数（例: 8回）を全セット崩れずにクリアできたら、次回2.5kgアップ。",
+                injuryPrevention: "動作中に肩甲骨が前に出ると肩を痛めるため、常にベンチに背中を押し付ける。",
+                visible: true
+            },
+            {
+                id: "ex_incline_db_press",
+                day: "mon",
+                name: "インクラインDBプレス",
+                stars: 4,
+                desc: "大胸筋上部の狙い撃ち / Tシャツの映える逞しい胸元作り",
+                target: "大胸筋上部 肩 三角筋前部 胸元",
+                load: "8-10回 × 3set",
+                tempo: "2-0-2-0",
+                interval: "2分",
+                correct: "鎖骨のやや下に向けてダンベルを収縮軌道で押し上げる。押し上げた際、ダンベル同士を軽く寄せるイメージ。",
+                incorrect: "インクラインベンチの角度が急すぎて、前鋸筋や三角筋前部（肩）にばかり刺激が逃げてしまう。",
+                steps: [
+                    "ベンチの角度を30〜45度に設定し、ダンベルを両膝の上に置く。",
+                    "キックバックを使ってダンベルを肩の上へ持っていき、胸を張る。",
+                    "肘を斜め前方に保ちながら、鎖骨の下あたりに向けてゆっくり下ろす。",
+                    "大胸筋上部の繊維に沿って、ハの字を描くように斜め上へ押し上げる。"
+                ],
+                stepsNote: "ベンチの角度が急すぎると肩（三角筋前部）に効いてしまうため、30度付近を推奨します。",
+                checkEfficacy: "鎖骨のすぐ下（大胸筋上部）にカチカチに硬くなる収縮感とストレッチ感があるか。",
+                weightUpCondition: "10回を3セット完全にコントロールして行えたら、次回片側1kg〜2kgアップ。",
+                injuryPrevention: "ボトムポジションでダンベルを深く下ろしすぎると、肩関節前部の靭帯に強い負担がかかります。",
+                visible: true
+            },
+            {
+                id: "ex_pec_fly",
+                day: "mon",
+                name: "ペックフライ",
+                stars: 3,
+                desc: "大胸筋内側のセパレーション / ストレッチと最大収縮を重視",
+                target: "大胸筋内側 セパレーション 谷間 収縮",
+                load: "10-12回 × 3set",
+                tempo: "2-1-2-0",
+                interval: "90秒",
+                correct: "大きな丸太を抱きかかえるような円軌道で動作する。最大収縮ポイントで1秒しっかりと静止して胸の谷間を作る。",
+                incorrect: "プレスのように肘が曲がりすぎてしまう。肩が前に出て、大胸筋ではなく肩関節前部に負荷が逃げる。",
+                steps: [
+                    "マシンのシートを調整し、座ったときにグリップが胸の高さに来るようにする。",
+                    "肘を軽く曲げて固定し、胸を開いて大胸筋をストレッチさせる。",
+                    "大きな木を抱きかかえるような半円を描きながら、前方に絞り込む。",
+                    "グリップが最接近した位置で1秒収縮を意識し、ゆっくりと戻す。"
+                ],
+                stepsNote: "肘の角度は動作中に終始固定し、プレス（押し出す）動作にならないようにします。",
+                checkEfficacy: "胸の谷間（大胸筋内側）にギリギリと絞り込まれるような強い収縮痛があるか。",
+                weightUpCondition: "12回をフォームのブレなく3セット完遂できたら、次回1プレート（最低目盛り）アップ。",
+                injuryPrevention: "スタートポジションで腕を後ろに引きすぎると肩のインピンジメントを引き起こします。",
+                visible: true
+            },
+            {
+                id: "ex_lat_pulldown",
+                day: "mon",
+                name: "ラットプルダウン",
+                stars: 5,
+                desc: "背中の拡がり / 逆三角形のシルエット作りの鍵",
+                target: "背中 広背筋 逆三角形 大円筋",
+                load: "8-10回 × 4set",
+                tempo: "2-0-2-0",
+                interval: "2分",
+                correct: "手や腕で引くのではなく、肘を脇腹にねじり込むように引く。上体をわずかに後傾させ鎖骨へ向かってバーを下ろす。",
+                incorrect: "背中が丸まり、肩甲骨が上がった状態でバーを引く。握力に頼りすぎて前腕ばかりが疲労する。",
+                steps: [
+                    "バーを肩幅よりやや広めに握り、シートに深く座って太ももをパッドで固定する。",
+                    "上体をわずかに（15度ほど）後傾させ、胸を大きく張る。",
+                    "肘を脇腹に向かって引き下ろすように、バーを鎖骨付近へ引く。",
+                    "広背筋が伸びきるのをコントロールしながら、ゆっくりとバーを戻す。"
+                ],
+                stepsNote: "手の力ではなく、肘でバーを引き下ろす感覚（フックとして手を使う）が極意です。",
+                checkEfficacy: "脇の下から背中の外側（広背筋）にかけて、強烈な収縮とストレッチが繰り返されているか。",
+                weightUpCondition: "10回を背中の代償なしに4セット引ききれたら、次回5kgアップ。",
+                injuryPrevention: "バーを首の後ろに引くビハインド・ザ・ネックは肩関節へのリスクが高いため、必ずフロントに引く。",
+                visible: true
+            },
+            {
+                id: "ex_seated_row",
+                day: "mon",
+                name: "シーテッドロー",
+                stars: 4,
+                desc: "背中の厚み（僧帽筋中部・下部） / 立体的で彫りの深い背中へ",
+                target: "背中 厚み 僧帽筋中部 僧帽筋下部",
+                load: "10-12回 × 3set",
+                tempo: "2-1-2-0",
+                interval: "90秒",
+                correct: "骨盤をしっかり立てて真っ直ぐ座る。肩甲骨を引き寄せて背中中央（中背部）の収縮を十分に意識する。",
+                incorrect: "引くとき、上体を激しく後ろに倒して反動を使う。肩がすくんで肩甲骨の寄せが甘くなる。",
+                steps: [
+                    "骨盤を立ててシートに座り、足をステップに乗せて膝を軽く曲げる。",
+                    "アタッチメントを握り、肩甲骨を下げてリラックスした状態を作る。",
+                    "おへそに向かって、肘を後ろへ引っ張るようにしてアタッチメントを引く。",
+                    "肩甲骨を完全に寄せきった状態で1秒静止し、元の位置に優しく戻す。"
+                ],
+                stepsNote: "引くときに上体を激しく後ろに倒さないよう、体幹（腹圧）を強く保ちます。",
+                checkEfficacy: "背中の真ん中（僧帽筋中部・下部、広背筋下部）にグッと詰まるような収縮感があるか。",
+                weightUpCondition: "12回を3セット、反動を全く使わずに引ききれたら次回重量を追加。",
+                injuryPrevention: "戻す（エキセントリック）動作の時に背中が丸まると、腰椎を痛めるリスクが非常に高まります。",
+                visible: true
+            },
+            {
+                id: "ex_onehand_db_row",
+                day: "mon",
+                name: "ワンハンドダンベルロー",
+                stars: 4,
+                desc: "背中の深層筋・可動域の最大化 / 左右差の解消と強いストレッチ",
+                target: "背中 深層筋 広背筋 可動域 左右差",
+                load: "8-10回 × 3set",
+                tempo: "2-0-2-0",
+                interval: "90秒",
+                correct: "ダンベルを垂直に引き上げるのではなく、ポケット（腰）の方向へ向かって弧を描くように肘を引き上げる。",
+                incorrect: "体を過度にひねって、広背筋ではなく脊柱の回転モーメントでダンベルを上げてしまう。",
+                steps: [
+                    "ベンチに片手と片膝を乗せ、背筋を床と平行にまっすぐ伸ばす。",
+                    "反対側の手でダンベルを握り、肩の力を抜いて下へ下ろす。",
+                    "ダンベルを真上ではなく、骨盤（ポケット）の方向へ弧を描くように引き上げる。",
+                    "脇をしっかりと締め、背中の筋肉でダンベルの重さを感じながら下ろす。"
+                ],
+                stepsNote: "体を無理にひねってダンベルを上げようとせず、肩のラインは床と並行を維持します。",
+                checkEfficacy: "広背筋の下部から脇腹の奥側にかけて、左右独立した強烈なパンプが得られるか。",
+                weightUpCondition: "左右ともに10回3セット、同じ軌道でフォームを崩さず行えたら次回2kgアップ。",
+                injuryPrevention: "下ろした位置でダンベルの重さに負けて肩が完全に抜けると、肩鎖関節を痛める原因になります。",
+                visible: true
+            },
+
+            // --- 水曜日 (wed) ---
+            {
+                id: "ex_shoulder_press",
+                day: "wed",
+                name: "ショルダープレス",
+                stars: 5,
+                desc: "肩（三角筋前部・中部）の強化 / 頑丈な肩幅を作る基本種目",
+                target: "肩 三角筋前部 三角筋中部 頑丈",
+                load: "8-10回 × 3set",
+                tempo: "2-0-1-0",
+                interval: "2分",
+                correct: "肘が体よりも少し前を通り、前腕が床と垂直を保ったままダンベルを真上に引き上げる。胸の張りを一定に維持。",
+                incorrect: "ダンベルを下ろしたときに前腕が傾き、肘に強い負担がかかる。また腰を激しく反りすぎてしまう。",
+                steps: [
+                    "背もたれをほぼ垂直（80度〜85度）に設定し、胸を軽く張って座る。",
+                    "耳の高さでダンベルを構え、肘が前腕と垂直になるように保つ。",
+                    "三角筋の力で、頭上に向かってダンベルをハの字を描くように押し上げる。",
+                    "ダンベルが軽く近づく位置まで上げたら、重力に抗って耳の高さまで戻す。"
+                ],
+                stepsNote: "押し切った位置で肘を完全にロック（伸ばしきる）せず、わずかに曲げた状態を保ち負荷を維持します。",
+                checkEfficacy: "肩の前側（三角筋前部）にずっしりとした疲労感と、腕が上がらなくなるような張りがあるか。",
+                weightUpCondition: "10回を3セット、腰を反らせずに完全にコントロールできたら次回1〜2kgアップ。",
+                injuryPrevention: "動作中に腰が過剰に浮いて反してしまうと、腰椎すべり症やヘルニアを誘発する恐れがあります。",
+                visible: true
+            },
+            {
+                id: "ex_side_raise",
+                day: "wed",
+                name: "サイドレイズ",
+                stars: 5,
+                desc: "メロン肩の構築（三角筋中部） / アウトラインを際立たせる",
+                target: "肩 メロン肩 三角筋中部 アウトライン",
+                load: "12-15回 × 4set",
+                tempo: "2-0-2-0",
+                interval: "60-90秒",
+                correct: "小指側をほんの少し上に向けながら、斜め約30度前（肩甲面）に向けて、遠くに放り投げるようにダンベルを上げる。",
+                incorrect: "首をすくめて、僧帽筋で重量を引き上げてしまう。またはダンベルを後ろに振り、背中の反動を使ってしまう。",
+                steps: [
+                    "両手にダンベルを持ち、軽く前傾姿勢をとって膝を緩める。",
+                    "肘をわずかに曲げて固定し、真横ではなく「斜め約30度前方」へダンベルを上げる。",
+                    "肩の高さまで遠くに放り投げるように引き上げ、ボトムへ向かってゆっくり下ろす。",
+                    "ダンベルが体につく手前（負荷が抜けない位置）で切り返し、次のレップに移る。"
+                ],
+                stepsNote: "首の付け根（僧帽筋）をすくめないように、常に肩を落としたまま動作を行います。",
+                checkEfficacy: "肩の真ん中（三角筋中部）がメロンのように丸く張り、熱くなるようなバーン（灼熱感）があるか。",
+                weightUpCondition: "15回を首に力を入れずに綺麗なフォームで4セット完遂できたら次回0.5〜1kgアップ。",
+                injuryPrevention: "手首が肘より高くなると肩関節のインピンジメントを起こすため、常に小指側をやや高く保つ意識。",
+                visible: true
+            },
+            {
+                id: "ex_rear_delt_fly",
+                day: "wed",
+                name: "リアデルトフライ",
+                stars: 5,
+                desc: "後部肩（三角筋後部） / 圧倒的な立体感と厚みのある後ろ姿へ",
+                target: "肩 三角筋後部 リア 後ろ姿 立体感",
+                load: "12-15回 × 3set",
+                tempo: "2-0-2-1",
+                interval: "60秒",
+                correct: "肩甲骨を開いた状態（プロトラクション）でロックし、背中（大円筋・僧帽筋）をなるべく収縮させずに腕を横に大きく展開。",
+                incorrect: "引くときに肩甲骨を寄せすぎてしまい、広背筋や僧帽筋に大半の負荷が逃げてしまう。",
+                steps: [
+                    "股関節から上体を深く前傾させ（床とほぼ平行）、背筋をまっすぐ伸ばす。",
+                    "ダンベルを手のひらが向かい合うように持ち、肘をわずかに曲げて固定する。",
+                    "肩甲骨を「寄せない」ように意識し、腕を真横（やや前寄り）に大きく開くように上げる。",
+                    "三角筋後部（肩の後ろ）に重さを感じながら、ゆっくりとダンベルをスタートに戻す。"
+                ],
+                stepsNote: "背中の筋肉（僧帽筋）を使って引き上げてしまいがちなので、肩甲骨は開いた状態でロックします。",
+                checkEfficacy: "肩の後ろ側（三角筋後部）にピンポイントでズキズキとした強いパンプ感があるか。",
+                weightUpCondition: "15回を完全に背中を使わずに3セット連続でターゲットに効かせられたら次回微増。",
+                injuryPrevention: "高重量を扱いすぎると、確実に背中の筋肉に負荷が逃げ、肩関節周囲炎の原因にもなります。",
+                visible: true
+            },
+            {
+                id: "ex_incline_curl",
+                day: "wed",
+                name: "インクラインカール",
+                stars: 4,
+                desc: "上腕二頭筋（力こぶ） / 最大ストレッチで腕に強烈な高さを",
+                target: "腕 上腕二頭筋 力こぶ ストレッチ 長頭",
+                load: "10-12回 × 3set",
+                tempo: "3-0-2-1",
+                interval: "90秒",
+                correct: "約45度に設定したベンチに深く寝た状態で行う。上腕二頭筋（特に長頭）が最大に引き伸ばされるボトムを強く意識。",
+                incorrect: "ダンベルを持ち上げるときに肘が前に大きく動き、肩（三角筋前部）を使って重量を上げてしまう。",
+                steps: [
+                    "ベンチの角度を45〜60度に設定し、座って腕を自然に下へ垂らす。",
+                    "肘を固定したまま、手のひらを上に向けるようにひねりながらダンベルを巻き上げる。",
+                    "トップポジションで二頭筋を強く収縮させ、その後、重力に抗ってゆっくりと下ろす。",
+                    "二頭筋が最大ストレッチされるボトムまで下ろし、肘が伸びきる直前で切り返す。"
+                ],
+                stepsNote: "腕を下ろしたときに肘が後ろにいきすぎたり、巻き上げる時に前後に動かないよう徹底します。",
+                checkEfficacy: "力こぶ（上腕二頭筋長頭）の根元からトップにかけて、はち切れそうなパンプ感があるか。",
+                weightUpCondition: "12回をチーティング（反動）なしで3セット綺麗に上げられたら次回1kgアップ。",
+                injuryPrevention: "ボトムで急激に負荷をかけたり腕を完全に脱力して伸ばしきると、二頭筋の腱を痛めます。",
+                visible: true
+            },
+            {
+                id: "ex_cable_pressdown",
+                day: "wed",
+                name: "ケーブルプレスダウン",
+                stars: 4,
+                desc: "上腕三頭筋（外側頭・内側頭） / 腕を太くたくましく見せる基本",
+                target: "腕 上腕三頭筋 外側頭 内側頭 プレスダウン",
+                load: "10-12回 × 3set",
+                tempo: "2-0-2-1",
+                interval: "90秒",
+                correct: "脇をしっかりと締め、上体をやや前傾させて肘を固定。肘の位置が動かないように注意し、前腕だけを床に向けて垂直に強く押し下げる。",
+                incorrect: "重量が重すぎて、体重を乗せるように肩を落として押し込んでしまう。動作中に肘が大きく開いてしまう。",
+                steps: [
+                    "ケーブルマシンの前に立ち、バーまたはロープを順手で握る。",
+                    "脇を締め、上体を軽く前傾させ、肘を90度曲げて固定する。",
+                    "肘の位置を完全に固定したまま、手のひらを床に向かって押し下げる。",
+                    "最下点で肘を伸ばしきり、三頭筋を強く収縮させた後、ゆっくりとコントロールして戻す。"
+                ],
+                stepsNote: "肩が上がったり、体重を乗せて押しつぶすようなフォームにならないよう体幹を固定します。",
+                checkEfficacy: "二の腕の外側（上腕三頭筋外側頭）が硬く収縮し、絞られるような疲労感があるか。",
+                weightUpCondition: "12回をフォームを一切崩さずに3セット完璧に行えたら次回プレートを1枚増やす。",
+                injuryPrevention: "肘関節が過伸展（ロックアウト）して関節に負荷が乗りすぎないよう、最後の一瞬のコントロールを意識。",
+                visible: true
+            },
+            {
+                id: "ex_overhead_tri_ex",
+                day: "wed",
+                name: "オーバーヘッドトライセプスEX",
+                stars: 4,
+                desc: "上腕三頭筋長頭 / 腕の太さの根幹を太くする重要オーバーヘッド種目",
+                target: "腕 上腕三頭筋 長頭 エクステンション 肘",
+                load: "10-12回 × 3set",
+                tempo: "3-0-2-0",
+                interval: "90秒",
+                correct: "両肘を耳の横に極力寄せたニュートラルに近い状態のまま、ダンベルを頭の後ろ深くへ下ろす。三頭筋長頭を限界まで伸ばす。",
+                incorrect: "肘が外へ大きく開きすぎて負荷が関節へ逃げてしまう。または押し上げたときに肘をロック（過伸展）してしまう。",
+                steps: [
+                    "フラットベンチに座り、1つのダンベルを両手で包むように（または片手ずつ）持つ。",
+                    "腕を真上に伸ばし、肘を耳の横にぴったりと寄せて固定する。",
+                    "肘を支点にして、ダンベルを頭の後ろ深くへゆっくりと下ろしていく。",
+                    "三頭筋が強くストレッチされたのを感じたら、肘の位置を変えずに真上へ押し上げる。"
+                ],
+                stepsNote: "動作中に肘が横に開いてしまうと、対象筋肉から負荷が抜けて肘関節へ負担が移ります。",
+                checkEfficacy: "二の腕の裏側（上腕三頭筋長頭）が引きちぎられるような強力なストレッチ感と疲労があるか。",
+                weightUpCondition: "12回をすべてのセットで肘を開かずに完遂できたら次回2kgアップ。",
+                injuryPrevention: "ダンベルを急に下ろすと肘を強打したり腱を痛めるため、ネガティブ動作を3秒かけて慎重に行います。",
+                visible: true
+            },
+
+            // --- 金曜日 (fri) ---
+            {
+                id: "ex_squat",
+                day: "fri",
+                name: "スクワット",
+                stars: 5,
+                desc: "下半身全体の強化 / 代謝向上と脚全体の筋肥大",
+                target: "脚 下半身 大腿四頭筋 大臀筋 ハーフ パラレル",
+                load: "6-8回 × 4set",
+                tempo: "3-1-1-0",
+                interval: "3分",
+                correct: "股関節を主導に、背筋を真っ直ぐ伸ばしてお尻を真下・斜め後ろへ降ろす。太ももが床と平行（パラレル）になるまで深くしゃがみ込む。",
+                incorrect: "膝がつま先よりも極端に前に出てしまう。あるいは、背中が丸まり腰椎が曲がってしまう（バットウィンク）。",
+                steps: [
+                    "バーを僧帽筋上部に担ぎ、胸を張って足幅を肩幅よりやや広めに開き、つま先を外へ向ける。",
+                    "お腹に深く息を吸って腹圧を高め、お尻を斜め後ろに引くように股関節から曲げてしゃがむ。",
+                    "太ももが床と並行（パラレル）になる深さまで下ろしたら、足裏全体で地面を強く踏みしめる。",
+                    "息を吐きながら、骨盤を真っ直ぐ立ち上げるように一気に立ち上がる。"
+                ],
+                stepsNote: "膝が内側に入る（ニーイン）と靭帯を痛めるため、常に膝はつま先と同じ方向へ向けます。",
+                checkEfficacy: "大腿四頭筋（太もも前）とお尻（大臀筋）全体にずっしりとした強い疲労と熱感があるか。",
+                weightUpCondition: "目安の回数（例: 8回）を深さをキープしたまま4セット完遂できたら、次回2.5kgアップ。",
+                injuryPrevention: "しゃがみこんだ際、腰が丸まる（バットウィンク）と腰椎へ極めて致命的な負荷がかかるので注意。",
+                visible: true
+            },
+            {
+                id: "ex_rdl",
+                day: "fri",
+                name: "RDL（ルーマニアンDL）",
+                stars: 5,
+                desc: "ハムストリングス＆臀部 / 後面の強力なチェーン強化と骨盤前傾",
+                target: "脚 ハムストリングス 臀部 もも裏 お尻 ヒップヒンジ",
+                load: "8-10回 × 3set",
+                tempo: "3-0-1-0",
+                interval: "2分",
+                correct: "膝をわずかに曲げた角度で完全にロック（ヒップヒンジ）し、お尻を後ろの壁へ突き出すようにスライドさせ、ハム（もも裏）を強力に引き伸ばす。",
+                incorrect: "ただ膝を曲げてバーを床へ下ろしてしまい、スクワットに動作が近づいてしまう。背骨が大きく曲がる。",
+                steps: [
+                    "バーベルを順手（またはストラップ使用）で持ち、直立して足を腰幅に開く。",
+                    "膝をわずかに曲げた角度で完全に「ロック（固定）」し、骨盤を後ろに突き出すように前傾する。",
+                    "バーを太もも〜すねにぴったりと沿わせながら、ハムストリングスが限界まで伸びる位置まで下ろす。",
+                    "もも裏とお尻の収縮力を使って、上体を起こし直立姿勢に戻る。"
+                ],
+                stepsNote: "膝の屈曲を使ってバーを下ろすとスクワットになってしまうため、ヒップヒンジを保みます。",
+                checkEfficacy: "お尻の付け根から太も目の裏側（ハムストリングス）にかけて、ピンと張るようなストレッチ感があるか。",
+                weightUpCondition: "10回を背中を完全に真っ直ぐ保ったまま3セット完遂できたら次回重量を追加。",
+                injuryPrevention: "バーが体から離れると重心が崩れ、腰に強烈な剪断力がかかって急性腰痛（ギックリ腰）の原因になります。",
+                visible: true
+            },
+            {
+                id: "ex_bulgarian_squat",
+                day: "fri",
+                name: "ブルガリアンスクワット",
+                stars: 4,
+                desc: "お尻（大臀筋・中臀筋）と前もも / 圧倒的な下半身のバランス",
+                target: "脚 お尻 大臀筋 中臀筋 前もも バランス",
+                load: "10-12回 × 3set",
+                tempo: "2-1-1-0",
+                interval: "2分",
+                correct: "前脚に体重の8〜9割を乗せる。上半身を少し前傾させて、斜め後ろにお尻を引くように深く下ろしていくと大臀筋（お尻）に強烈な負荷が入る。",
+                incorrect: "後ろに置いた脚にばかり頼って立ち上がってしまい、膝関節を痛めてしまう。",
+                steps: [
+                    "ベンチから一歩半ほど前に立ち、片足の甲を後ろのベンチに乗せる。",
+                    "両手にダンベルを持ち、上体をわずかに前傾させ、重心を「前脚のヒール（かかと）」に乗せる。",
+                    "前脚の膝がつま先より前に出ないよう、お尻を斜め後ろに下ろすように深く沈み込む。",
+                    "前脚の足裏全体（特にかかと）で地面を強く押し上げて、元の位置に戻る。"
+                ],
+                stepsNote: "後ろ足はバランスをとるためだけに使用し、前脚だけで9割以上の負荷を支えるのが鉄則です。",
+                checkEfficacy: "動作している脚のお尻（大臀筋・中臀筋）および太もも裏に強烈な疲労が集中しているか。",
+                weightUpCondition: "左右それぞれ10回をグラつかずに3セットコントロールして完遂できたら次回1〜2kgアップ。",
+                injuryPrevention: "膝が内側に倒れると前十字靭帯を損傷するリスクがあるため、常に膝とつま先を外側に向け維持します。",
+                visible: true
+            },
+            {
+                id: "ex_leg_curl",
+                day: "fri",
+                name: "レッグカール",
+                stars: 3,
+                desc: "ハムストリングス / もも裏全体のセパレーション",
+                target: "脚 ハムストリングス もも裏 セパレーション 屈曲",
+                load: "12-15回 × 3set",
+                tempo: "2-0-2-1",
+                interval: "90秒",
+                correct: "お腹と骨盤をしっかりとシート/パッドに押し付けた状態で、かかとをお尻に向かって強く引き寄せる。伸ばすエキセントリック動作を重視。",
+                incorrect: "力任せに引くときに骨盤がシートから浮いてしまい、腰（脊柱起立筋）で負荷を代償してしまう。",
+                steps: [
+                    "マシンにうつ伏せになり（または座位）、足首の少し上にパッドが当たるよう調整する。",
+                    "骨盤がシートから浮かないよう、しっかりとお腹をパッドに押し付ける。",
+                    "かかとをお尻に引き寄せるように、一気にパッドを巻き上げる。",
+                    "ハムストリングスの緊張を感じながら、3秒かけてゆっくりとスタートポジションに戻す。"
+                ],
+                stepsNote: "力任せに引くときにお尻が浮いて腰が反ってしまいがちですが、腹圧を高めて骨盤を押し付け続けます。",
+                checkEfficacy: "もも裏の真ん中（ハムストリングス中央）がギチギチに収縮し、吊りそうになるほどの張りがあるか。",
+                weightUpCondition: "12回を骨盤を浮かせずに3セット完全コントロールできたら次回1プレートアップ。",
+                injuryPrevention: "膝を伸ばしきったところで脱力して関節をロックすると、膝関節に過剰な衝撃がかかります。",
+                visible: true
+            },
+            {
+                id: "ex_calf_raise",
+                day: "fri",
+                name: "カーフレイズ",
+                stars: 4,
+                desc: "ふくらはぎ / 第二の心臓の強化と強固な足首",
+                target: "脚 ふくらはぎ 腓腹筋 ヒラメ筋 踵 第二の心臓",
+                load: "15-20回 × 3set",
+                tempo: "2-1-2-1",
+                interval: "60秒",
+                correct: "段差やステップ台に足の前半分を乗せ、かかとを最大限下ろして強くストレッチ。親指の付け根（母指球）で地面を強く押し上げて限界まで立ち上がる。",
+                incorrect: "アキレス腱の弾性を使ってポンポンと跳ねるように（バウンディング）行ってしまい、ふくらはぎへの負荷が抜ける。",
+                steps: [
+                    "段差やつま先立ちができるプレートに足の前半分を乗せ、かかとを深く下ろしてストレッチさせる。",
+                    "親指の付け根（母指球）に意識を集中させ、一気につま先立ちをするように立ち上がる。",
+                    "最大収縮ポイントで1秒キープし、ふくらはぎを強く絞り込む。",
+                    "重力に抗いながら、かかとが段差よりさらに低くなるまでゆっくりと下ろす。"
+                ],
+                stepsNote: "アキレス腱のゴムのような弾力を使って弾むように動作せず、一回一回丁寧にボトムとトップで静止させます。",
+                checkEfficacy: "ふくらはぎ（腓腹筋・ヒラメ筋）に焼き付くような灼熱感（バーン）が生じているか。",
+                weightUpCondition: "20回をフルレンジ（最大可動域）で3セットクリアできたら次回ダンベルを重くする。",
+                injuryPrevention: "弾んで行うとふくらはぎではなくアキレス腱に負荷が逃げ、腱鞘炎や断裂の重大なリスクになります。",
+                visible: true
+            },
+
+            // --- 日曜日 (sun) ---
+            {
+                id: "ex_sun_rear_delt",
+                day: "sun",
+                name: "リアデルト (弱点)",
+                stars: 4,
+                desc: "肩甲骨を完全に開いて固定。軽い重量を用いて肩後部（三角筋後部）だけにじわじわ効かせるアクティブ種目",
+                target: "弱点強化 回復 リアデルト 肩甲骨 三角筋後部",
+                load: "15-20回 × 3set",
+                tempo: "2-0-2-0",
+                interval: "60秒",
+                correct: "上体をしっかり傾け、肩甲骨は寄せないように腕を真横に振り上げる。肩後部だけの単純動作を意識。",
+                incorrect: "高重量を使用しすぎて、肩甲骨が寄り、広背筋や僧帽筋に負荷のほとんどが逃げてしまう。",
+                steps: [
+                    "ベンチを前傾させるか、インクラインベンチにうつ伏せになり、胸を預ける。",
+                    "軽いダンベルを持ち、肩甲骨は動かさず開いたままロックする。",
+                    "肩の後ろ（リアデルト）の繊維の方向に沿って、腕をななめ後ろへ大きく広げる。",
+                    "収縮を感じながらコントロールして戻し、常にテンションが抜けないようにする。"
+                ],
+                stepsNote: "重量はかなり軽めに設定し、動作中に肩甲骨を寄せて背中で引かないように徹します。",
+                checkEfficacy: "三角筋後部のみにじわじわと血流が溜まり、ピンポイントで痛くなる感覚があるか。",
+                weightUpCondition: "20回を背中の代償動作なしで完璧に3セット行えたら、超極小のステップで重量を上げる。",
+                injuryPrevention: "反動を使うと一瞬で僧帽筋に負荷が移り、肩関節の不自然な捻れを誘発して関節唇を痛めます。",
+                visible: true
+            },
+            {
+                id: "ex_sun_side_raise",
+                day: "sun",
+                name: "サイドレイズ (軽め)",
+                stars: 4,
+                desc: "通常使用重量の約半分に設定。反動を完全に殺してスローモーションで行い、肩中部の神経伝達系をリフレッシュ",
+                target: "弱点強化 回復 サイドレイズ 低負荷高回数 伝達",
+                load: "20-25回 × 3set",
+                tempo: "3-1-3-0",
+                interval: "60秒",
+                correct: "極限までストリクト（丁寧）に。肩を落として、肩関節のみの動作を追求し三角筋中部を絞り込む。",
+                incorrect: "腕を遠くへ放り投げる際に首に力が入る。体幹が前後に揺れ、お尻の反動で上がっている。",
+                steps: [
+                    "通常トレーニングの半分の重量のダンベルを持ち、軽く胸を張る。",
+                    "反動を一切排除し、2秒かけて肩の真横（やや斜め前）へダンベルを押し上げる。",
+                    "トップで一瞬静止させ、3秒かけてゆっくりと下ろす。",
+                    "下ろしきる直前で、休まずにすぐ次のレップへ移行する（ノンロックアウトレップ）。"
+                ],
+                stepsNote: "低重量だからこそマインドマッスルコネクション（意識と筋肉の連動）を限界まで高めます。",
+                checkEfficacy: "わずか数レップで三角筋中部が熱くなり、セット終了時には腕が上がらない感覚になるか。",
+                weightUpCondition: "25回をスロートレーニングのように4セット完全にコントロールできたら次回微増。",
+                injuryPrevention: "軽重量であっても首をすくめて行うと頚椎の神経を圧迫し、手のしびれ等の原因になります。",
+                visible: true
+            },
+            {
+                id: "ex_sun_abs",
+                day: "sun",
+                name: "腹筋 (クランチなど)",
+                stars: 3,
+                desc: "おへそを覗き込むように背骨を丸めていく。みぞおちとお腹の下部を強く近づけて腹直筋を圧縮",
+                target: "弱点強化 腹筋 クランチ 腹直筋 体幹",
+                load: "15-20回 × 3set",
+                tempo: "2-0-2-1",
+                interval: "60秒",
+                correct: "上体を起こすことではなく、みぞおちとおへその距離を縮めて背骨を丸める（カーブさせる）動作を厳守。",
+                incorrect: "股関節の力（腸腰筋）で体を起こしてしまい、首を手の力で無理やり前に引いて痛めてしまう。",
+                steps: [
+                    "仰向けに寝て、股関節と膝を95度前後に曲げて足を浮かせるかベンチに乗せる。",
+                    "手を頭の後ろに軽く添え（引っ張らない）、息を大きく吐きながらおへそを覗き込む。",
+                    "みぞおちとおへそを近づけるようにして、背骨を上から一つずつ丸める。",
+                    "限界まで丸めて腹直筋を絞り込んだら、背中を床に滑らせるようにゆっくり戻す。",
+                    "頭を床につけず、腹筋の緊張を保ったまま次のレップへ。"
+                ],
+                stepsNote: "上体を起こすシットアップではなく、背中を「丸める」クランチであることが重要です。",
+                checkEfficacy: "お腹の正面（腹直筋上部）がギュッとクランプ（収縮）し、引きちぎられるような感覚があるか。",
+                weightUpCondition: "20回を全てのセットで首を痛めずに、完璧な収縮で3セット完遂できたら次回加重。",
+                injuryPrevention: "手で頭を強く前に引っ張ると頚椎を痛めるため、手は添えるだけにするか胸の前でクロスします。",
+                visible: true
+            },
+            {
+                id: "ex_sun_calf",
+                day: "sun",
+                name: "カーフ (弱点)",
+                stars: 3,
+                desc: "アキレス腱の反動を使わず、ボトム位置で1秒静止、最大収縮点（つま先立ち）でさらに1秒キープ",
+                target: "弱点強化 回復 カーフ ふくらはぎ 収縮静止 自重",
+                load: "20-30回 × 3set",
+                tempo: "2-1-2-1",
+                interval: "60秒",
+                correct: "フルレンジで、かかとを最大限下げきった状態から一気に真上につま先立ちをする。神経集中。",
+                incorrect: "膝が過度に曲がっている。つま先の向きが極端に内側、または外側に向きグラついている。",
+                steps: [
+                    "壁に手をあてて片脚で立ち、もう片方の足を後ろに浮かせる。",
+                    "軸脚のかかとを床につけてアキレス腱を十分に伸ばした状態から、一気につま先立ちする。",
+                    "ふくらはぎを完全に収縮させて1秒静止させ、その後ゆっくり自重を支えながらかかとを下ろす。",
+                    "連続して左右交互に行い、セット間もストレッチを取り入れる。"
+                ],
+                stepsNote: "自重だからこそ可動域を限界まで広く使い、最大の収縮と最大のストレッチを引き出します。",
+                checkEfficacy: "ふくらはぎ全体（特に内側）が非常に硬くなり、強いパンプ感が現れているか。",
+                weightUpCondition: "左右片脚ずつ30回を完璧にコントロールして3セットできたら、次回軽いダンベルを片手に持つ。",
+                injuryPrevention: "足首がグラつくと捻挫の原因になるため、常にまっすぐ垂直な軸を保ちながら動作します。",
+                visible: true
+            },
+            {
+                id: "ex_sun_hammer",
+                day: "sun",
+                name: "ハンマーカール",
+                stars: 4,
+                desc: "手のひらを向かい合わせたまま巻き上げ、上腕筋（力こぶ深層）と腕橈骨筋（前腕部）を厚く立体的に強化",
+                target: "弱点強化 回復 腕 ハンマーカール 腕橈骨筋 前腕",
+                load: "10-12回 × 3set",
+                tempo: "2-0-2-1",
+                interval: "90秒",
+                correct: "手首を親指が上を向いたニュートラルポジション（縦向き）で固定し、肘が前後に動かないようにカールする。",
+                incorrect: "手首を返す動作を混ぜてしまい普通のカールになる。または、重量が重すぎて肩を前に出して上げている。",
+                steps: [
+                    "両手にダンベルを手のひらが向かい合うように（ニュートラルグリップ）持ち、直立する。",
+                    "肘を体側にしっかり固定し、ダンベルを縦向きに維持したまま巻き上げる。",
+                    "トップで上腕筋と前腕の腕橈骨筋に力を込め、1秒間キープする。",
+                    "縦向きを維持したまま、重さに抗うようにしてゆっくりダンベルを下ろす。"
+                ],
+                stepsNote: "手のひらを上に向けるひねりを加えないことで、上腕二頭筋の深層にある上腕筋を狙い撃ちします。",
+                checkEfficacy: "力こぶの外側のライン（上腕筋）と、前腕の親指側（腕橈骨筋）にズッシリとした強い張りがでるか。",
+                weightUpCondition: "12回を体幹を一切揺らさずに3セット完璧にやりきれたら次回1〜2kgアップ。",
+                injuryPrevention: "手首が下へ折れてしまうと手首の腱鞘炎を引き起こすため、手首は常にまっすぐ強く固定します。",
+                visible: true
+            }
+        ];
+
+        // App State
+        let activeDay = 'home'; 
+        let isTimerRunning = false;
+        let timerInterval = null;
+        let timerDuration = 90; // Default: 90 seconds
+        let currentTimerTime = timerDuration;
+
+        // Calendar & Log State
+        let currentCalendarDate = new Date(); 
+        let selectedLogDate = new Date(); 
+        let weightChartInstance = null;
+        let currentChartRange = '1m'; 
+
+        // Drag & Drop State
+        let dragSrcEl = null;
+
+        // LocalStorage Data Structures
+        let exercisesDB = JSON.parse(localStorage.getItem('gym_pro_exercises_v3')) || defaultExercises;
+        let dailyLogs = JSON.parse(localStorage.getItem('gym_pro_daily_logs_v2')) || {};
+
+        const dayLabels = {
+            mon: '月曜日：胸・背中',
+            tue: '火曜日：休養日',
+            wed: '水曜日：肩・腕',
+            thu: '木曜日：休養日',
+            fri: '金曜日：脚',
+            sat: '土曜日：休養日',
+            sun: '日曜日：弱点・回復'
+        };
+
+        const targetByDayIndex = {
+            1: '💪 胸・背中のトレーニング',
+            2: '🛌 完全休養日 (リカバリー)',
+            3: '🎯 肩・腕のトレーニング',
+            4: '🛌 完全休養日 (リカバリー)',
+            5: '🦵 脚のトレーニング',
+            6: '🛌 完全休養日 (リカバリー)',
+            0: '🔮 弱点強化 ＆ 回復リカバリー'
+        };
+
+        // Initialize App on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check default storage structure compatibility
+            if (!localStorage.getItem('gym_pro_exercises_v3')) {
+                localStorage.setItem('gym_pro_exercises_v3', JSON.stringify(defaultExercises));
+            }
+
+            // Set default date to today & Load initial displays
+            setCalendarToToday();
+            initChart();
+        });
+
+        // Format to Local ISO-like Date String (YYYY-MM-DD)
+        function formatDateLocal(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Render Cards dynamically based on visible exercises list for active tab
+        function renderActiveDayCards() {
+            if (activeDay === 'home') return;
+
+            const container = document.getElementById(`section-${activeDay}`);
+            if (!container) return;
+
+            // Clear previous HTML
+            container.innerHTML = '';
+
+            // Filter active day exercises
+            const dayExercises = exercisesDB.filter(ex => ex.day === activeDay);
+
+            // 1. Title, Progress, and Custom Add Row
+            const statsHeader = document.createElement('div');
+            statsHeader.className = "bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3";
+            
+            const totalCount = dayExercises.filter(e => e.visible).length;
+            const completedCount = getCompletedExercisesCountForSelectedDate();
+
+            statsHeader.innerHTML = `
+                <div class="space-y-1">
+                    <span class="text-[10px] text-cyan-400 font-extrabold uppercase tracking-widest">${dayLabels[activeDay]}</span>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-emerald-400"></i>
+                        <span>本日の完了進捗: ${completedCount} / ${totalCount} 種目</span>
+                    </h3>
+                </div>
+                <div class="w-full sm:w-48 bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                    <div class="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full transition-all duration-300" style="width: ${totalCount ? (completedCount / totalCount) * 100 : 0}%"></div>
+                </div>
+            `;
+            container.appendChild(statsHeader);
+
+            // 2. Render Cards loop with Drag and Drop properties
+            dayExercises.forEach((ex, index) => {
+                // If set to hidden and not rendering invisible controls
+                if (!ex.visible) return;
+
+                const card = document.createElement('div');
+                card.className = "card bg-slate-900/60 rounded-2xl border border-slate-800 overflow-hidden shadow-lg hover:border-slate-700/60 transition-all cursor-default select-none relative";
+                card.setAttribute('draggable', 'true');
+                card.setAttribute('data-id', ex.id);
+
+                // Build Drag & Touch Drag Arrow indicators
+                const starsHtml = '<i class="fa-solid fa-star"></i>'.repeat(ex.stars) + '<i class="fa-regular fa-star"></i>'.repeat(5 - ex.stars);
+                const isChecked = isExerciseCompletedForSelectedDate(ex.name);
+                const checkClass = isChecked ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-700 text-transparent hover:border-emerald-500 hover:text-emerald-400';
+
+                // Format steps
+                const stepsListHtml = (ex.steps || []).map((step, sIdx) => `
+                    <li class="text-xs leading-relaxed"><span class="font-extrabold text-cyan-400 mr-1.5">` + ['①','②','③','④','⑤','⑥'][sIdx] + `</span> ${step}</li>
+                `).join('');
+
+                card.innerHTML = `
+                    <!-- Drag handle and hide button controls -->
+                    <div class="absolute top-4 left-3 flex items-center gap-1 z-20">
+                        <span class="drag-handle cursor-grab text-slate-600 hover:text-slate-300 px-1 text-sm select-none py-1 block">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                        </span>
+                        <!-- Quick Reorder Arrow Buttons for Mobile Viewports -->
+                        <div class="flex flex-col text-[10px] text-slate-500">
+                            <button onclick="shiftExerciseIndex('${ex.id}', -1, event)" class="hover:text-cyan-400 p-0.5"><i class="fa-solid fa-chevron-up"></i></button>
+                            <button onclick="shiftExerciseIndex('${ex.id}', 1, event)" class="hover:text-cyan-400 p-0.5"><i class="fa-solid fa-chevron-down"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Hide Action -->
+                    <button onclick="hideExercise('${ex.id}', event)" class="absolute top-4 right-3 text-slate-500 hover:text-rose-500 transition-colors py-1 px-2 z-20" title="この種目を非表示（一時退避）にする">
+                        <i class="fa-solid fa-eye-slash text-xs"></i> 非表示
+                    </button>
+
+                    <!-- Card Header -->
+                    <div class="card-header pl-12 pr-20 py-4 cursor-pointer flex justify-between items-center hover:bg-slate-800/20 select-none" onclick="toggleCard(this)">
+                        <div class="flex items-center gap-3">
+                            <!-- Toggle Check Indicator -->
+                            <button onclick="toggleExerciseCheck('${ex.name}', event)" class="flex items-center justify-center w-6 h-6 rounded-full border-2 transition-all active:scale-95 shrink-0 ${checkClass}">
+                                <i class="fa-solid fa-check text-[10px]"></i>
+                            </button>
+                            <div class="flex flex-col gap-0.5">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm sm:text-base font-bold text-white">${ex.name}</span>
+                                    <span class="text-[10px] text-amber-500 flex gap-0.5">${starsHtml}</span>
+                                </div>
+                                <span class="text-xs text-slate-400 font-sans">${ex.desc || ''}</span>
+                            </div>
+                        </div>
+                        <div class="arrow-icon text-slate-500 transition-transform duration-300"><i class="fa-solid fa-chevron-down"></i></div>
+                    </div>
+                    
+                    <!-- Card Content (Accordion panel) -->
+                    <div class="card-content hidden border-t border-slate-800 px-5 py-5 space-y-5 bg-slate-950/20">
+                        
+                        <!-- Log recording form section -->
+                        <div class="bg-slate-900/90 p-4 rounded-xl border border-cyan-500/20 space-y-3 shadow-inner">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <span class="text-xs font-black text-cyan-400 flex items-center gap-1.5"><i class="fa-solid fa-pen-nib"></i> この種目のトレーニング実績</span>
+                                <span class="text-[9px] text-slate-500 font-mono tracking-wider" id="log-date-badge-${ex.name}">YYYY/MM/DD ログ</span>
+                            </div>
+                            <div id="set-fields-${ex.name}" class="space-y-1.5">
+                                <!-- Dynamic JS sets injected here -->
+                            </div>
+                            <button onclick="addSetRow('${ex.name}')" class="w-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs py-1.5 rounded-lg transition active:scale-95 flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i> セットを追加する
+                            </button>
+                        </div>
+
+                        <!-- Load indicators grid -->
+                        <div class="grid grid-cols-3 gap-3 bg-slate-900/90 p-3 rounded-xl border border-slate-880/80">
+                            <div class="text-center">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">目安負荷</span>
+                                <span class="text-sm font-bold text-cyan-400">${ex.load || '未設定'}</span>
+                            </div>
+                            <div class="text-center border-x border-slate-800">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">テンポ</span>
+                                <span class="text-sm font-bold text-slate-300">${ex.tempo || '2-0-1-0'}</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">インターバル</span>
+                                <span class="text-sm font-bold text-slate-300">${ex.interval || '2分'}</span>
+                            </div>
+                        </div>
+
+                        <!-- Proper and Improper posture guidance -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <div class="bg-emerald-950/10 border-l-4 border-emerald-500 p-3.5 rounded-r-xl border-y border-r border-slate-800">
+                                <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5 mb-1.5"><i class="fa-regular fa-circle-check"></i> 正解動作・意識</span>
+                                <p class="text-xs text-slate-300 leading-relaxed">${ex.correct || '背骨を真っ直ぐ保ち、対象部位のみに焦点を合わせる。'}</p>
+                            </div>
+                            <div class="bg-rose-950/10 border-l-4 border-rose-500 p-3.5 rounded-r-xl border-y border-r border-slate-800">
+                                <span class="text-xs font-bold text-rose-400 flex items-center gap-1.5 mb-1.5"><i class="fa-solid fa-triangle-exclamation"></i> NG動作・失敗例</span>
+                                <p class="text-xs text-slate-300 leading-relaxed font-sans">${ex.incorrect || '反動やチーティングを使用して対象筋肉から負荷を逃がす。'}</p>
+                            </div>
+                        </div>
+
+                        <!-- Step-by-Step Training Guide (Steps & StepsNote) -->
+                        <div class="bg-slate-900/40 border border-slate-850 p-4 rounded-xl">
+                            <h4 class="text-xs font-bold text-cyan-400 border-b border-slate-800 pb-2 mb-3 uppercase tracking-wider"><i class="fa-solid fa-route mr-1.5"></i>フォーム実施手順</h4>
+                            <ol class="space-y-3">
+                                ${stepsListHtml || '<li class="text-xs text-slate-500">手順は未登録です。</li>'}
+                            </ol>
+                            ${ex.stepsNote ? `
+                                <div class="mt-3 pt-3 border-t border-slate-800/80">
+                                    <p class="text-xs text-slate-300"><span class="text-cyan-400 font-bold"><i class="fa-solid fa-circle-info mr-1"></i>注釈:</span> ${ex.stepsNote}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- The 3 Big Guideline Indicators (Efficacy, Up Condition, Injury prevention) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                                <span class="text-[10px] text-cyan-400 font-extrabold uppercase tracking-widest block"><i class="fa-solid fa-bullseye"></i> 効き確認</span>
+                                <p class="text-xs text-slate-300 leading-relaxed">${ex.checkEfficacy || '筋肉が硬く収縮しているか確認。'}</p>
+                            </div>
+                            <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                                <span class="text-[10px] text-emerald-400 font-extrabold uppercase tracking-widest block"><i class="fa-solid fa-circle-arrow-up"></i> 重量UP条件</span>
+                                <p class="text-xs text-slate-300 leading-relaxed">${ex.weightUpCondition || '規定回数を綺麗に完遂できたら加重。'}</p>
+                            </div>
+                            <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                                <span class="text-[10px] text-rose-400 font-extrabold uppercase tracking-widest block"><i class="fa-solid fa-shield-halved"></i> 怪我予防</span>
+                                <p class="text-xs text-slate-300 leading-relaxed">${ex.injuryPrevention || '関節の過伸展を避け、正しい軌道を通る。'}</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-800/80 pt-4">
+                            <label class="block text-xs font-bold text-cyan-400 mb-2 flex items-center gap-1.5">
+                                <i class="fa-regular fa-pen-to-square"></i> 次回への申し送り・ウエイト調整メモ (自動保存)
+                            </label>
+                            <textarea oninput="saveMemoField('${ex.name}', this.value)" class="memo-input w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-xl p-3 text-xs text-slate-200 placeholder-slate-650 focus:outline-none transition" rows="2" placeholder="例: 重量とフォームを固定して実施。次回はさらにアップ。"></textarea>
+                        </div>
+                    </div>
+                `;
+
+                // Add card drag events
+                addCardDragAndDropListeners(card);
+
+                container.appendChild(card);
+            });
+
+            // 3. Cardio & Recovery elements
+            renderCardioAndRecoveryArea(container);
+
+            // 4. Hidden hidden managers elements
+            renderHiddenExercisesManager(container);
+
+            // Re-sync input log content fields
+            loadActiveDayLogsIntoFields();
+        }
+
+        // Generate Cardio & Recovery stretch sections dynamically
+        function renderCardioAndRecoveryArea(container) {
+            const recoveryDiv = document.createElement('div');
+            recoveryDiv.className = "border-t border-slate-800 pt-6 mt-6 space-y-4";
+            
+            let stretchDesc = "全身を呼吸を止めずにゆっくりスタティックストレッチを行い、疲労物質除去を行います。";
+            if (activeDay === 'mon') stretchDesc = "① 胸の壁ストレッチ、② 広背筋の四つん這いひねりストレッチを呼吸を止めずに20〜30秒行い、血行を改善します。";
+            else if (activeDay === 'wed') stretchDesc = "① 肩のクロス引き伸ばし、② 頭上での三頭筋押し下げストレッチをゆっくり30秒キープします。";
+            else if (activeDay === 'fri') stretchDesc = "① 前太ももの引き寄せ、② 座位でのハムストリングス前屈ストレッチを無理のない強さで行います。";
+            else if (activeDay === 'sun') stretchDesc = "① キャット＆カウ、② 首・肩周りのスタティックストレッチで自律神経を整えて熟睡に備えます。";
+
+            recoveryDiv.innerHTML = `
+                <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2 px-1">
+                    <i class="fa-solid fa-person-running"></i>
+                    <span>本日の有酸素運動 & 回復ケア</span>
+                </h3>
+                
+                <!-- Cardio Box -->
+                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5"><i class="fa-solid fa-heart-pulse text-rose-500"></i> 有酸素運動の記録 (時間/速度/傾斜設定など)</span>
+                        <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">推奨: 15~20分</span>
+                    </div>
+                    <div id="cardio-fields-${activeDay}" class="space-y-2"></div>
+                    <button onclick="addCardioRow('${activeDay}')" class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs py-2 rounded-xl transition active:scale-95 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-plus text-[10px]"></i> 有酸素セッションを追加
+                    </button>
+                </div>
+
+                <!-- Stretch Card -->
+                <div class="card bg-emerald-950/5 rounded-2xl border border-emerald-900/40 overflow-hidden shadow-lg hover:border-emerald-700/40 transition-all">
+                    <div class="card-header px-5 py-4 cursor-pointer flex justify-between items-center hover:bg-emerald-950/20 select-none" onclick="toggleCard(this)">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold uppercase tracking-widest bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-full font-sans">回復ストレッチ</span>
+                                <span class="text-sm sm:text-base font-bold text-emerald-300">アクティブリカバリー ストレッチ習慣</span>
+                            </div>
+                        </div>
+                        <div class="arrow-icon text-slate-500 transition-transform duration-300"><i class="fa-solid fa-chevron-down"></i></div>
+                    </div>
+                    <div class="card-content hidden border-t border-emerald-900/40 p-5 bg-emerald-950/10 space-y-3">
+                        <p class="text-xs text-slate-300 leading-relaxed">${stretchDesc}</p>
+                    </div>
+                </div>
+            `;
+            container.appendChild(recoveryDiv);
+        }
+
+        // Generate Hidden/Archived Exercises Management Area
+        function renderHiddenExercisesManager(container) {
+            const hiddenExercises = exercisesDB.filter(ex => ex.day === activeDay && !ex.visible);
+            if (hiddenExercises.length === 0) return;
+
+            const managerDiv = document.createElement('div');
+            managerDiv.className = "mt-6 bg-slate-950/50 p-4 rounded-2xl border border-dashed border-slate-800 space-y-3";
+            
+            let listHtml = hiddenExercises.map(ex => `
+                <div class="flex justify-between items-center bg-slate-900 px-3 py-2 rounded-xl border border-slate-850">
+                    <span class="text-xs font-bold text-slate-300">${ex.name}</span>
+                    <button onclick="restoreExercise('${ex.id}')" class="text-xs bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 py-1 px-2.5 rounded-lg transition active:scale-95">
+                        <i class="fa-solid fa-eye mr-1"></i> 再表示する
+                    </button>
+                </div>
+            `).join('');
+
+            managerDiv.innerHTML = `
+                <div class="flex items-center justify-between cursor-pointer" onclick="toggleCard(this)">
+                    <span class="text-xs font-black text-slate-500 flex items-center gap-2">
+                        <i class="fa-solid fa-eye-slash"></i>
+                        <span>非表示中の種目 (${hiddenExercises.length}件) を管理</span>
+                    </span>
+                    <span class="arrow-icon text-slate-600"><i class="fa-solid fa-chevron-down text-xs"></i></span>
+                </div>
+                <div class="card-content hidden pt-3 space-y-2">
+                    ${listHtml}
+                </div>
+            `;
+            container.appendChild(managerDiv);
+        }
+
+        /* --- Drag & Drop Operations --- */
+        function addCardDragAndDropListeners(card) {
+            card.addEventListener('dragstart', handleDragStart, false);
+            card.addEventListener('dragover', handleDragOver, false);
+            card.addEventListener('drop', handleDrop, false);
+            card.addEventListener('dragend', handleDragEnd, false);
+        }
+
+        function handleDragStart(e) {
+            dragSrcEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            this.classList.add('card-dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault(); 
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation(); 
+            }
+
+            if (dragSrcEl !== this) {
+                const srcId = dragSrcEl.getAttribute('data-id');
+                const targetId = this.getAttribute('data-id');
+
+                const srcIndex = exercisesDB.findIndex(ex => ex.id === srcId);
+                const targetIndex = exercisesDB.findIndex(ex => ex.id === targetId);
+
+                if (srcIndex !== -1 && targetIndex !== -1) {
+                    // Reorder item array
+                    const [removed] = exercisesDB.splice(srcIndex, 1);
+                    exercisesDB.splice(targetIndex, 0, removed);
+
+                    localStorage.setItem('gym_pro_exercises_v3', JSON.stringify(exercisesDB));
+                    renderActiveDayCards();
+                    showToast("種目の順序を並び替えました");
+                }
+            }
+            return false;
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('card-dragging');
+        }
+
+        // Shift exercise order manually via Arrow Buttons (Mobile support)
+        function shiftExerciseIndex(id, direction, event) {
+            event.stopPropagation();
+            const currIdx = exercisesDB.findIndex(ex => ex.id === id);
+            if (currIdx === -1) return;
+
+            const targetIdx = currIdx + direction;
+            if (targetIdx < 0 || targetIdx >= exercisesDB.length) return;
+
+            // Make sure shift is within same day list boundary
+            if (exercisesDB[currIdx].day !== exercisesDB[targetIdx].day) {
+                return;
+            }
+
+            // Reorder item in array
+            const temp = exercisesDB[currIdx];
+            exercisesDB[currIdx] = exercisesDB[targetIdx];
+            exercisesDB[targetIdx] = temp;
+
+            localStorage.setItem('gym_pro_exercises_v3', JSON.stringify(exercisesDB));
+            renderActiveDayCards();
+            showToast("種目の並び順を更新しました");
+        }
+
+        // Hide exercise card
+        function hideExercise(id, event) {
+            event.stopPropagation();
+            const idx = exercisesDB.findIndex(ex => ex.id === id);
+            if (idx === -1) return;
+
+            exercisesDB[idx].visible = false;
+            localStorage.setItem('gym_pro_exercises_v3', JSON.stringify(exercisesDB));
+            
+            renderActiveDayCards();
+            showToast(`「${exercisesDB[idx].name}」を非表示にしました`);
+        }
+
+        // Restore exercise card
+        function restoreExercise(id) {
+            const idx = exercisesDB.findIndex(ex => ex.id === id);
+            if (idx === -1) return;
+
+            exercisesDB[idx].visible = true;
+            localStorage.setItem('gym_pro_exercises_v3', JSON.stringify(exercisesDB));
+            
+            renderActiveDayCards();
+            showToast(`「${exercisesDB[idx].name}」を再表示しました`);
+        }
+
+        /* --- Add Custom Exercise Modal Actions --- */
+        function openAddExerciseModal() {
+            document.getElementById('modalDay').value = activeDay;
+            document.getElementById('addExerciseModal').classList.remove('hidden');
+        }
+
+        function closeAddExerciseModal() {
+            document.getElementById('addExerciseForm').reset();
+            document.getElementById('addExerciseModal').classList.add('hidden');
+        }
+
+        // Handle Add Custom Exercise form submission
+        document.getElementById('addExerciseForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const customName = document.getElementById('modalName').value.trim();
+            if (!customName) return;
+
+            // Compile steps list array
+            const stepsVal = document.getElementById('modalSteps').value;
+            const stepsArr = stepsVal.split('\n').map(l => l.trim()).filter(l => l !== "");
+
+            const newEx = {
+                id: 'ex_' + Date.now(),
+                day: document.getElementById('modalDay').value,
+                name: customName,
+                stars: parseInt(document.getElementById('modalStars').value) || 4,
+                desc: document.getElementById('modalDesc').value.trim() || 'カスタム作成種目',
+                target: document.getElementById('modalTarget').value.trim() || '追加項目',
+                load: document.getElementById('modalLoad').value.trim() || '10回 × 3set',
+                tempo: document.getElementById('modalTempo').value.trim() || '2-0-2-0',
+                interval: document.getElementById('modalInterval').value.trim() || '90秒',
+                correct: document.getElementById('modalCorrect').value.trim() || '正しい姿勢で行う。',
+                incorrect: document.getElementById('modalIncorrect').value.trim() || '反動を使わない。',
+                steps: stepsArr,
+                stepsNote: document.getElementById('modalStepsNote').value.trim(),
+                checkEfficacy: document.getElementById('modalCheckEfficacy').value.trim() || 'パンプアップ確認',
+                weightUpCondition: document.getElementById('modalWeightUpCondition').value.trim() || 'クリアで重量増',
+                injuryPrevention: document.getElementById('modalInjuryPrevention').value.trim() || '関節の負担を抑える',
+                visible: true
+            };
+
+            exercisesDB.push(newEx);
+            localStorage.setItem('gym_pro_exercises_v3', JSON.stringify(exercisesDB));
+
+            // Reload Active view
+            if (activeDay === newEx.day) {
+                renderActiveDayCards();
+            } else {
+                switchDay(newEx.day);
+            }
+
+            closeAddExerciseModal();
+            showToast(`新規種目「${customName}」を作成しました！`);
+        });
+
+        /* --- Check Status and Progress Indicators --- */
+        function isExerciseCompletedForSelectedDate(exName) {
+            const dateISO = formatDateLocal(selectedLogDate);
+            const logData = dailyLogs[dateISO] || {};
+            const checks = logData.checks || {};
+            return !!checks[exName];
+        }
+
+        function getCompletedExercisesCountForSelectedDate() {
+            const dateISO = formatDateLocal(selectedLogDate);
+            const logData = dailyLogs[dateISO] || {};
+            const checks = logData.checks || {};
+            let count = 0;
+
+            const activeExercises = exercisesDB.filter(ex => ex.day === activeDay && ex.visible);
+            activeExercises.forEach(ex => {
+                if (checks[ex.name]) count++;
+            });
+            return count;
+        }
+
+        function toggleExerciseCheck(exName, event) {
+            if (event) event.stopPropagation(); // Avoid triggering accordion toggle action
+
+            const dateISO = formatDateLocal(selectedLogDate);
+            if (!dailyLogs[dateISO]) {
+                dailyLogs[dateISO] = { exercises: {}, cardio: [], comment: '', weight: null, checks: {} };
+            }
+            if (!dailyLogs[dateISO].checks) {
+                dailyLogs[dateISO].checks = {};
+            }
+
+            const isChecked = !dailyLogs[dateISO].checks[exName];
+            dailyLogs[dateISO].checks[exName] = isChecked;
+
+            localStorage.setItem('gym_pro_daily_logs_v2', JSON.stringify(dailyLogs));
+
+            renderActiveDayCards();
+            updatePreviewModule();
+            showToast(`「${exName}」を${isChecked ? '完了' : '未完了'}にしました`);
+        }
+
+        // Save Memo items values safely inside LocalStorage
+        function saveMemoField(exName, value) {
+            const storageKey = `gym_pro_memo_${exName}`;
+            localStorage.setItem(storageKey, value);
+        }
+
+        /* --- Calendar Management Elements --- */
+        function syncGlobalActiveDateDetails() {
+            const dateISO = formatDateLocal(selectedLogDate);
+            const dayOfWeek = selectedLogDate.getDay();
+
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' };
+            document.getElementById('globalActiveDateText').textContent = selectedLogDate.toLocaleDateString('ja-JP', options);
+
+            const targetStr = targetByDayIndex[dayOfWeek];
+            document.getElementById('globalActiveTargetText').textContent = targetStr;
+
+            // Load input logs
+            renderActiveDayCards();
+            updatePreviewModule();
+        }
+
+        function navigateCalendar(offset) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
+            renderCalendar();
+        }
+
+        function setCalendarToToday() {
+            currentCalendarDate = new Date();
+            selectedLogDate = new Date();
+            renderCalendar();
+            syncGlobalActiveDateDetails();
+            updateTodayTargetDisplay();
+        }
+
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            
+            document.getElementById('calendarMonthTitle').textContent = `${year}年${month + 1}月`;
+            const daysGrid = document.getElementById('calendarDaysGrid');
+            daysGrid.innerHTML = '';
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+            const todayISO = formatDateLocal(new Date());
+            const selectedISO = formatDateLocal(selectedLogDate);
+
+            // Empty slots for grid alignment offset
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'py-3';
+                daysGrid.appendChild(emptyCell);
+            }
+
+            // Month days rendering loop
+            for (let dayNum = 1; dayNum <= totalDaysInMonth; dayNum++) {
+                const dayDate = new Date(year, month, dayNum);
+                const dayISO = formatDateLocal(dayDate);
+                const dayOfWeek = dayDate.getDay();
+
+                const dayBtn = document.createElement('button');
+                dayBtn.onclick = () => selectDateForLogging(dayDate);
+
+                let baseClass = "w-full py-2.5 rounded-xl font-bold flex flex-col items-center justify-between transition border relative ";
+                
+                // Color cues for targets
+                let targetHintDot = "";
+                if (dayOfWeek === 1) { 
+                    targetHintDot = '<span class="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-cyan-400"></span>';
+                } else if (dayOfWeek === 3) { 
+                    targetHintDot = '<span class="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-purple-400"></span>';
+                } else if (dayOfWeek === 5) { 
+                    targetHintDot = '<span class="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>';
+                } else if (dayOfWeek === 0) { 
+                    targetHintDot = '<span class="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-pink-400"></span>';
+                }
+
+                // Green dot indicator if weight exists
+                let weightBadge = "";
+                if (dailyLogs[dayISO] && dailyLogs[dayISO].weight) {
+                    weightBadge = `<span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>`;
+                }
+
+                // Check active state style
+                if (dayISO === todayISO) {
+                    baseClass += "bg-cyan-500/10 text-cyan-300 border-cyan-400/80 shadow-md shadow-cyan-500/10";
+                } else if (dayISO === selectedISO) {
+                    baseClass += "bg-slate-800 text-white border-emerald-500 active-date-border shadow-md";
+                } else {
+                    baseClass += "bg-slate-900/30 text-slate-300 border-transparent hover:bg-slate-800/40 hover:border-slate-800";
+                }
+
+                if (dayOfWeek === 0) {
+                    dayBtn.className = baseClass + " text-rose-400";
+                } else if (dayOfWeek === 6) {
+                    dayBtn.className = baseClass + " text-cyan-400/90";
+                } else {
+                    dayBtn.className = baseClass;
+                }
+
+                dayBtn.innerHTML = `<span>${dayNum}</span>${targetHintDot}${weightBadge}`;
+                daysGrid.appendChild(dayBtn);
+            }
+        }
+
+        function selectDateForLogging(date) {
+            selectedLogDate = new Date(date);
+            renderCalendar();
+            syncGlobalActiveDateDetails();
+            showToast(`${date.getMonth()+1}月${date.getDate()}日が選択されました`);
+        }
+
+        function updateTodayTargetDisplay() {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const target = targetByDayIndex[dayOfWeek];
+            document.getElementById('homeTodayTarget').innerHTML = `<i class="fa-solid fa-fire-flame-simple text-emerald-400 mr-2"></i>今日の予定: ${target}`;
+            
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' };
+            document.getElementById('homeTodayDateString').textContent = today.toLocaleDateString('ja-JP', options);
+        }
+
+        // Load Selected Log into all dynamic input rows across workout tabs
+        function loadActiveDayLogsIntoFields() {
+            const dateISO = formatDateLocal(selectedLogDate);
+            const logData = dailyLogs[dateISO] || { weight: '', comment: '', exercises: {}, cardio: [] };
+
+            // Weight Field & Preview Setup
+            document.getElementById('quickWeightInput').value = logData.weight || '';
+
+            // Render Dynamic elements
+            if (activeDay === 'home') return;
+
+            const dayExercises = exercisesDB.filter(ex => ex.day === activeDay);
+            dayExercises.forEach(ex => {
+                const badge = document.getElementById(`log-date-badge-${ex.name}`);
+                if (badge) {
+                    badge.textContent = `${selectedLogDate.getMonth() + 1}/${selectedLogDate.getDate()} の記録`;
+                }
+
+                // Restore Set Fields
+                const setContainer = document.getElementById(`set-fields-${ex.name}`);
+                if (!setContainer) return;
+                setContainer.innerHTML = '';
+
+                const savedSets = (logData.exercises && logData.exercises[ex.name]) || [];
+                if (savedSets.length > 0) {
+                    savedSets.forEach((set, idx) => {
+                        injectSetInputRow(ex.name, idx + 1, set.w, set.r);
+                    });
+                } else {
+                    injectSetInputRow(ex.name, 1, '', '');
+                }
+
+                // Restore Memo Fields
+                const textarea = setContainer.closest('.card-content')?.querySelector('.memo-input');
+                if (textarea) {
+                    const savedMemo = localStorage.getItem(`gym_pro_memo_${ex.name}`) || '';
+                    textarea.value = savedMemo;
+                }
+            });
+
+            // Restore Cardio Fields
+            const cardioContainer = document.getElementById(`cardio-fields-${activeDay}`);
+            if (cardioContainer) {
+                cardioContainer.innerHTML = '';
+                const savedCardio = logData.cardio || [];
+                if (savedCardio.length > 0) {
+                    savedCardio.forEach((item, idx) => {
+                        injectCardioInputRow(activeDay, idx + 1, item.t, item.d, item.n);
+                    });
+                } else {
+                    injectCardioInputRow(activeDay, 1, '', '', '');
+                }
+            }
+        }
+
+        // Generate Set Log Row HTML
+        function injectSetInputRow(exName, setNum, weight = '', reps = '') {
+            const container = document.getElementById(`set-fields-${exName}`);
+            if (!container) return;
+
+            const div = document.createElement('div');
+            div.className = "set-item-row grid grid-cols-12 gap-2 items-center bg-slate-950/40 p-2 rounded-xl border border-slate-800 animate-fadeIn";
+            div.innerHTML = `
+                <div class="col-span-2 text-center">
+                    <span class="set-num-badge text-[10px] font-bold text-slate-500 bg-slate-950 px-2 py-0.5 rounded font-mono">${setNum}S</span>
+                </div>
+                <div class="col-span-5 relative flex items-center">
+                    <input type="text" placeholder="重量" value="${weight}" oninput="autoSaveLogData()" class="input-weight w-full bg-slate-900 border border-slate-800 focus:border-cyan-400 rounded-lg p-1.5 text-xs font-bold text-slate-100 text-center font-mono">
+                    <span class="absolute right-2 text-[9px] font-bold text-slate-500">kg</span>
+                </div>
+                <div class="col-span-4 relative flex items-center">
+                    <input type="text" placeholder="回数" value="${reps}" oninput="autoSaveLogData()" class="input-reps w-full bg-slate-900 border border-slate-800 focus:border-cyan-400 rounded-lg p-1.5 text-xs font-bold text-slate-100 text-center font-mono">
+                    <span class="absolute right-2 text-[9px] font-bold text-slate-500">回</span>
+                </div>
+                <div class="col-span-1 text-center">
+                    <button onclick="removeSetInputRow(this, '${exName}')" class="text-rose-500 hover:text-rose-400 text-sm transition"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function addSetRow(exName) {
+            const container = document.getElementById(`set-fields-${exName}`);
+            const nextSetNum = container.children.length + 1;
+            injectSetInputRow(exName, nextSetNum, '', '');
+            autoSaveLogData();
+        }
+
+        function removeSetInputRow(btn, exName) {
+            btn.closest('.set-item-row').remove();
+            reorderSetRowBadges(exName);
+            autoSaveLogData();
+        }
+
+        function reorderSetRowBadges(exName) {
+            const container = document.getElementById(`set-fields-${exName}`);
+            if (!container) return;
+            const rows = container.querySelectorAll('.set-item-row');
+            rows.forEach((row, idx) => {
+                const badge = row.querySelector('.set-num-badge');
+                if (badge) badge.textContent = `${idx + 1}S`;
+            });
+        }
+
+        // Generate Cardio Row HTML
+        function injectCardioInputRow(dayKey, index, time = '', speed = '', note = '') {
+            const container = document.getElementById(`cardio-fields-${dayKey}`);
+            if (!container) return;
+
+            const div = document.createElement('div');
+            div.className = "cardio-item-row grid grid-cols-12 gap-2 items-center bg-slate-950/40 p-2 rounded-xl border border-slate-800 animate-fadeIn";
+            div.innerHTML = `
+                <div class="col-span-1 text-center">
+                    <span class="cardio-idx text-[9px] font-mono font-bold text-slate-500">${index}</span>
+                </div>
+                <div class="col-span-3 relative flex items-center">
+                    <input type="text" placeholder="時間" value="${time}" oninput="autoSaveLogData()" class="input-cardio-time w-full bg-slate-900 border border-slate-800 focus:border-emerald-400 rounded-lg p-1.5 text-xs font-bold text-slate-100 text-center font-mono">
+                    <span class="absolute right-1.5 text-[8px] font-bold text-slate-500">分</span>
+                </div>
+                <div class="col-span-3 relative flex items-center">
+                    <input type="text" placeholder="時速" value="${speed}" oninput="autoSaveLogData()" class="input-cardio-speed w-full bg-slate-900 border border-slate-800 focus:border-emerald-400 rounded-lg p-1.5 text-xs font-bold text-slate-100 text-center font-mono">
+                    <span class="absolute right-1.5 text-[8px] font-bold text-slate-500">km</span>
+                </div>
+                <div class="col-span-4">
+                    <input type="text" placeholder="備考・傾斜など" value="${note}" oninput="autoSaveLogData()" class="input-cardio-note w-full bg-slate-900 border border-slate-800 focus:border-emerald-400 rounded-lg p-1.5 text-xs text-slate-200">
+                </div>
+                <div class="col-span-1 text-center">
+                    <button onclick="removeCardioRow(this, '${dayKey}')" class="text-rose-500 hover:text-rose-400 text-sm transition"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function addCardioRow(dayKey) {
+            const container = document.getElementById(`cardio-fields-${dayKey}`);
+            const nextIdx = container.children.length + 1;
+            injectCardioInputRow(dayKey, nextIdx, '', '', '');
+            autoSaveLogData();
+        }
+
+        function removeCardioRow(btn, dayKey) {
+            btn.closest('.cardio-item-row').remove();
+            reorderCardioRowIndices(dayKey);
+            autoSaveLogData();
+        }
+
+        function reorderCardioRowIndices(dayKey) {
+            const container = document.getElementById(`cardio-fields-${dayKey}`);
+            if (!container) return;
+            const rows = container.querySelectorAll('.cardio-item-row');
+            rows.forEach((row, idx) => {
+                const idxBadge = row.querySelector('.cardio-idx');
+                if (idxBadge) idxBadge.textContent = idx + 1;
+            });
+        }
+
+        // Auto Save function tied to oninput events across forms
+        function autoSaveLogData() {
+            const dateISO = formatDateLocal(selectedLogDate);
+            if (!dailyLogs[dateISO]) {
+                dailyLogs[dateISO] = { exercises: {}, cardio: [], comment: '', weight: null, checks: {} };
+            }
+
+            // Grab Weight from quick box
+            const quickWeight = parseFloat(document.getElementById('quickWeightInput').value);
+            dailyLogs[dateISO].weight = isNaN(quickWeight) ? null : quickWeight;
+
+            // Grab Exercises in appropriate active day
+            if (activeDay !== 'home') {
+                const dayExercises = exercisesDB.filter(ex => ex.day === activeDay);
+                dayExercises.forEach(ex => {
+                    const container = document.getElementById(`set-fields-${ex.name}`);
+                    if (!container) return;
+
+                    const rows = container.querySelectorAll('.set-item-row');
+                    const setsData = [];
+                    rows.forEach(row => {
+                        const w = row.querySelector('.input-weight').value.trim();
+                        const r = row.querySelector('.input-reps').value.trim();
+                        if (w !== "" || r !== "") {
+                            setsData.push({ w, r });
+                        }
+                    });
+
+                    if (setsData.length > 0) {
+                        dailyLogs[dateISO].exercises[ex.name] = setsData;
+                    } else {
+                        delete dailyLogs[dateISO].exercises[ex.name];
+                    }
+                });
+
+                // Grab Cardio Rows
+                const cardioContainer = document.getElementById(`cardio-fields-${activeDay}`);
+                if (cardioContainer) {
+                    const cRows = cardioContainer.querySelectorAll('.cardio-item-row');
+                    const cData = [];
+                    cRows.forEach(row => {
+                        const t = row.querySelector('.input-cardio-time').value.trim();
+                        const d = row.querySelector('.input-cardio-speed').value.trim();
+                        const n = row.querySelector('.input-cardio-note').value.trim();
+                        if (t !== "" || d !== "" || n !== "") {
+                            cData.push({ t, d, n });
+                        }
+                    });
+                    dailyLogs[dateISO].cardio = cData;
+                }
+            }
+
+            // Save to localStorage
+            localStorage.setItem('gym_pro_daily_logs_v2', JSON.stringify(dailyLogs));
+            updatePreviewModule();
+            updateChartData();
+        }
+
+        // Update home dashboard side preview module
+        function updatePreviewModule() {
+            const dateISO = formatDateLocal(selectedLogDate);
+            const dayOfWeek = selectedLogDate.getDay();
+
+            const options = { month: 'short', day: 'numeric', weekday: 'short' };
+            document.getElementById('previewSelectedDateTitle').textContent = `${selectedLogDate.toLocaleDateString('ja-JP', options)} の実績記録`;
+
+            // planned target tag
+            const tag = document.getElementById('previewSelectedTargetTag');
+            let label = "休養日";
+            if (dayOfWeek === 1) label = "胸・背中";
+            else if (dayOfWeek === 3) label = "肩・腕";
+            else if (dayOfWeek === 5) label = "脚";
+            else if (dayOfWeek === 0) label = "弱点・回復";
+            tag.textContent = label;
+
+            const logData = dailyLogs[dateISO];
+            if (!logData) {
+                document.getElementById('previewWeightValue').textContent = "-- kg";
+                document.getElementById('previewWorkoutItems').innerHTML = `<p class="italic text-slate-500 py-1">この日の記録はまだありません。</p>`;
+                document.getElementById('previewCardioItems').innerHTML = `<p class="italic text-slate-500 py-0.5">有酸素運動の記録なし</p>`;
+                return;
+            }
+
+            // Weight Display
+            document.getElementById('previewWeightValue').textContent = logData.weight ? `${logData.weight} kg` : "-- kg";
+
+            // Workout items display
+            const workoutDiv = document.getElementById('previewWorkoutItems');
+            workoutDiv.innerHTML = '';
+            
+            const savedExercises = logData.exercises || {};
+            const exerciseKeys = Object.keys(savedExercises);
+            const checks = logData.checks || {};
+
+            if (exerciseKeys.length > 0) {
+                exerciseKeys.forEach(name => {
+                    const sets = savedExercises[name];
+                    const setStrings = sets.map((s, idx) => `${idx + 1}S:${s.w}kg×${s.r}回`).join(', ');
+                    const p = document.createElement('div');
+                    p.className = "bg-slate-950/40 p-2.5 rounded-lg border border-slate-900 flex justify-between items-center";
+                    
+                    const isChecked = !!checks[name];
+                    const checkMark = isChecked ? '<span class="text-emerald-400 font-black text-xs flex items-center gap-1"><i class="fa-solid fa-circle-check"></i>完了</span>' : '<span class="text-slate-600 text-[10px]">未了</span>';
+
+                    p.innerHTML = `
+                        <div>
+                            <span class="font-bold text-slate-300 block mb-0.5">${name}</span>
+                            <span class="text-cyan-400 font-mono tracking-wide text-xs">${setStrings}</span>
+                        </div>
+                        <div>
+                            ${checkMark}
+                        </div>
+                    `;
+                    workoutDiv.appendChild(p);
+                });
+            } else {
+                workoutDiv.innerHTML = `<p class="italic text-slate-500 py-1">筋トレ実績の記入なし</p>`;
+            }
+
+            // Cardio display
+            const cardioDiv = document.getElementById('previewCardioItems');
+            cardioDiv.innerHTML = '';
+            const savedCardio = logData.cardio || [];
+            if (savedCardio.length > 0) {
+                savedCardio.forEach((item, idx) => {
+                    const p = document.createElement('div');
+                    p.className = "bg-emerald-950/10 p-2 rounded-lg border border-emerald-900/20";
+                    p.innerHTML = `<span class="font-bold text-slate-300">セッション${idx + 1}:</span> <span class="font-mono text-emerald-400">${item.t}分 / ${item.d}km/h</span> <span class="text-slate-500">(${item.n || '備考なし'})</span>`;
+                    cardioDiv.appendChild(p);
+                });
+            } else {
+                cardioDiv.innerHTML = `<p class="italic text-slate-500 py-0.5">有酸素運動の記録なし</p>`;
+            }
+        }
+
+        // Action Trigger for jumping from preview to log sheet tabs
+        function jumpToCurrentDayForm() {
+            const dayOfWeek = selectedLogDate.getDay();
+            if (dayOfWeek === 1) switchDay('mon');
+            else if (dayOfWeek === 3) switchDay('wed');
+            else if (dayOfWeek === 5) switchDay('fri');
+            else if (dayOfWeek === 0) switchDay('sun');
+            else {
+                showToast("本日はマニュアル登録がない休養日に設定されています。月・水・金・日のいずれかの曜日をタップして記録を行ってください。");
+            }
+        }
+
+        // Tab Switching Engine
+        function switchDay(day) {
+            activeDay = day;
+
+            document.querySelectorAll('.day-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            const targetSection = document.getElementById(`section-${day}`);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                tab.classList.remove('border-cyan-500', 'text-cyan-400', 'bg-slate-900/40');
+                tab.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            const activeTab = document.getElementById(`tab-${day}`);
+            if (activeTab) {
+                activeTab.classList.remove('border-transparent', 'text-slate-400');
+                activeTab.classList.add('border-cyan-500', 'text-cyan-400', 'bg-slate-900/40');
+            }
+
+            const toolbar = document.getElementById('manualToolbar');
+            if (day === 'home') {
+                toolbar.classList.add('hidden');
+                if (weightChartInstance) {
+                    setTimeout(() => {
+                        weightChartInstance.resize();
+                        updateChartData();
+                    }, 50);
+                }
+            } else {
+                toolbar.classList.remove('hidden');
+                document.getElementById('searchInput').value = '';
+                
+                // Dynamic cards generator
+                renderActiveDayCards();
+
+                // Open first card inside the selected tab for immediate view focus
+                if (targetSection) {
+                    const firstCard = targetSection.querySelector('.card');
+                    if (firstCard && !firstCard.classList.contains('open')) {
+                        const header = firstCard.querySelector('.card-header');
+                        toggleCard(header);
+                    }
+                }
+            }
+        }
+
+        // Save Weight with Quick entry and synchronize displays
+        function saveQuickWeight() {
+            const weightVal = parseFloat(document.getElementById('quickWeightInput').value);
+            if (isNaN(weightVal)) {
+                showToast("正しい数値を入力してください");
+                return;
+            }
+
+            const dateISO = formatDateLocal(selectedLogDate);
+            if (!dailyLogs[dateISO]) {
+                dailyLogs[dateISO] = { exercises: {}, cardio: [], comment: '', weight: null, checks: {} };
+            }
+
+            dailyLogs[dateISO].weight = weightVal;
+            localStorage.setItem('gym_pro_daily_logs_v2', JSON.stringify(dailyLogs));
+            showToast("記録体重を保存しました！");
+
+            updatePreviewModule();
+            updateChartData();
+            renderCalendar();
+        }
+
+        // Accordion Card Collapse/Expand Control
+        function toggleCard(headerElement) {
+            const card = headerElement.closest('.card') || headerElement.nextElementSibling;
+            const content = card.querySelector('.card-content') || headerElement.nextElementSibling;
+            const arrow = card.querySelector('.arrow-icon') || headerElement.querySelector('.arrow-icon');
+
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                card.classList.add('open');
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                card.classList.remove('open');
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function setAllCardsOpen(shouldOpen) {
+            const activeSection = document.getElementById(`section-${activeDay}`);
+            if (!activeSection) return;
+
+            const cards = activeSection.querySelectorAll('.card');
+            cards.forEach(card => {
+                const content = card.querySelector('.card-content');
+                if (!content) return;
+                const arrow = card.querySelector('.arrow-icon');
+
+                if (shouldOpen) {
+                    card.classList.add('open');
+                    content.classList.remove('hidden');
+                    if (arrow) arrow.style.transform = 'rotate(180deg)';
+                } else {
+                    card.classList.remove('open');
+                    content.classList.add('hidden');
+                    if (arrow) arrow.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+
+        // Live Fuzzy Search
+        function filterExercises() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const activeSection = document.getElementById(`section-${activeDay}`);
+            if (!activeSection) return;
+
+            const cards = activeSection.querySelectorAll('.card');
+            cards.forEach(card => {
+                const name = card.querySelector('.card-header span')?.textContent.toLowerCase() || '';
+                const id = card.getAttribute('data-id');
+                const ex = exercisesDB.find(e => e.id === id);
+                const target = ex ? ex.target.toLowerCase() : '';
+
+                if (query === '' || name.includes(query) || target.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        /* --- Rest Interval Timer Engine --- */
+        function formatTimeDisplay(totalSeconds) {
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimerUI() {
+            document.getElementById('globalTimerDisplay').textContent = formatTimeDisplay(currentTimerTime);
+        }
+
+        function changeTimerDuration(seconds) {
+            timerDuration = seconds;
+            currentTimerTime = seconds;
+            updateTimerUI();
+            if (isTimerRunning) {
+                pauseGlobalTimer();
+            }
+        }
+
+        function toggleGlobalTimer() {
+            if (isTimerRunning) {
+                pauseGlobalTimer();
+            } else {
+                startGlobalTimer();
+            }
+        }
+
+        function startGlobalTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+
+            document.getElementById('timerToggleBtn').innerHTML = `<i class="fa-solid fa-pause text-xs text-slate-950"></i>`;
+            document.getElementById('timerToggleBtn').classList.replace('bg-cyan-500', 'bg-amber-500');
+
+            timerInterval = setInterval(() => {
+                if (currentTimerTime > 0) {
+                    currentTimerTime--;
+                    updateTimerUI();
+                } else {
+                    playAlarmSound();
+                    resetGlobalTimer();
+                }
+            }, 1000);
+        }
+
+        function pauseGlobalTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('timerToggleBtn').innerHTML = `<i class="fa-solid fa-play text-xs text-slate-950"></i>`;
+            document.getElementById('timerToggleBtn').classList.replace('bg-amber-500', 'bg-cyan-500');
+        }
+
+        function resetGlobalTimer() {
+            pauseGlobalTimer();
+            currentTimerTime = timerDuration;
+            updateTimerUI();
+        }
+
+        function playAlarmSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                for (let i = 0; i < 3; i++) {
+                    const offset = i * 0.35;
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(920, audioCtx.currentTime + offset); 
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime + offset);
+
+                    oscillator.start(audioCtx.currentTime + offset);
+                    oscillator.stop(audioCtx.currentTime + offset + 0.2);
+                }
+            } catch (err) {
+                console.error("Audio beep alarm unsupported:", err);
+            }
+        }
+
+        // Toast Messages
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2500);
+        }
+
+        // HTML2Canvas screenshot export logic (Optimized as beautiful standalone PDF/Image sheet)
+        function exportFullWorkoutScreenshot() {
+            const dateISO = formatDateLocal(selectedLogDate);
+            const dayOfWeek = selectedLogDate.getDay();
+            const logData = dailyLogs[dateISO];
+
+            if (!logData) {
+                showToast("⚠️ 本日の記録がありません。記録をしてから画像化してください。");
+                return;
+            }
+
+            showToast("📸 レポート画像を構築しています...");
+
+            // Populate Export template elements in background
+            document.getElementById('ssReportDateStr').textContent = selectedLogDate.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+            document.getElementById('ssReportWeightStr').textContent = logData.weight ? `Weight: ${logData.weight} kg` : "Weight: 未記録";
+
+            let targetText = "完全休養日";
+            if (dayOfWeek === 1) targetText = "月曜：胸・背中";
+            else if (dayOfWeek === 3) targetText = "水曜：肩・腕";
+            else if (dayOfWeek === 5) targetText = "金曜：脚";
+            else if (dayOfWeek === 0) targetText = "日曜：弱点・回復";
+
+            document.getElementById('ssReportTargetTag').textContent = targetText;
+
+            // Populate workouts in template
+            const workoutBox = document.getElementById('ssReportWorkoutList');
+            workoutBox.innerHTML = '';
+            
+            const savedExercises = logData.exercises || {};
+            const keys = Object.keys(savedExercises);
+            const checks = logData.checks || {};
+
+            if (keys.length > 0) {
+                keys.forEach(exName => {
+                    const row = document.createElement('div');
+                    row.className = "bg-[#0f172a] border border-[#1e293b] p-3.5 rounded-xl flex flex-col gap-1.5";
+                    
+                    const setsStr = savedExercises[exName].map((s, idx) => `
+                        <span class="bg-[#1e293b] text-slate-300 font-mono text-[10px] px-2 py-0.5 rounded-md">
+                            ${idx + 1}Set: <strong class="text-cyan-400 font-black">${s.w}</strong>kg × <strong class="text-emerald-400 font-black">${s.r}</strong>回
+                        </span>
+                    `).join(' ');
+
+                    // Dynamic individual memo loading
+                    const memoVal = localStorage.getItem(`gym_pro_memo_${exName}`) || '';
+                    const memoHtml = memoVal ? `
+                        <div class="mt-2 pt-2 border-t border-[#1e293b]/60 text-[11px] text-slate-400 italic">
+                            <span class="text-[9px] text-[#06b6d4] font-bold block not-italic uppercase tracking-wider mb-0.5">Memo / 次回申し送り</span>
+                            ${memoVal.replace(/\n/g, '<br>')}
+                        </div>
+                    ` : '';
+
+                    const isCompleted = !!checks[exName];
+                    const statusBadge = isCompleted ? `
+                        <span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> 完了</span>
+                    ` : `
+                        <span class="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold">未完了</span>
+                    `;
+
+                    row.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-black text-[#f1f5f9]">${exName}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mt-1">${setsStr}</div>
+                        ${memoHtml}
+                    `;
+                    workoutBox.appendChild(row);
+                });
+            } else {
+                workoutBox.innerHTML = `<p class="text-xs text-[#64748b] italic">本日の筋トレ記録はありません。</p>`;
+            }
+
+            // Populate Cardio in template
+            const cardioBox = document.getElementById('ssReportCardioList');
+            cardioBox.innerHTML = '';
+            const savedCardio = logData.cardio || [];
+            if (savedCardio.length > 0) {
+                savedCardio.forEach((item, idx) => {
+                    const row = document.createElement('div');
+                    row.className = "bg-[#0f172a] border border-[#1e293b] p-2.5 rounded-xl flex justify-between items-center";
+                    row.innerHTML = `
+                        <span>セッション ${idx + 1}: <strong class="text-slate-200">${item.t}分</strong> @ <strong class="text-emerald-400">${item.d}km/h</strong></span>
+                        <span class="text-[#64748b]">${item.n || '設定なし'}</span>
+                    `;
+                    cardioBox.appendChild(row);
+                });
+            } else {
+                cardioBox.innerHTML = `<p class="italic text-[#64748b]">本日の有酸素運動記録はありません。</p>`;
+            }
+
+            // Process capturing
+            const captureArea = document.getElementById('screenshotExportArea');
+            setTimeout(() => {
+                html2canvas(captureArea, {
+                    backgroundColor: '#090d16',
+                    scale: 2, 
+                    logging: false,
+                    useCORS: true
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `WorkoutReport_${dateISO}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showToast("📸 レポート画像をアルバムに保存しました！");
+                }).catch(err => {
+                    console.error("Capture failed", err);
+                    showToast("⚠️ 画像の生成に失敗しました。");
+                });
+            }, 300);
+        }
+
+        /* --- Chart.js Progress Visualization & Analytics --- */
+        function initChart() {
+            const ctx = document.getElementById('weightTrendChart').getContext('2d');
+            
+            const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
+            fillGrad.addColorStop(0, 'rgba(16, 185, 129, 0.25)'); 
+            fillGrad.addColorStop(1, 'rgba(6, 180, 212, 0.0)');   
+
+            weightChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '体重 (kg)',
+                            data: [],
+                            borderColor: '#10b981', 
+                            borderWidth: 3,
+                            pointBackgroundColor: '#06b6d4', 
+                            pointBorderColor: '#090d16',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            tension: 0.25,
+                            fill: true,
+                            backgroundColor: fillGrad
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#22d3ee', 
+                            titleFont: { family: 'Noto Sans JP', size: 11, weight: 'bold' },
+                            bodyFont: { family: 'Outfit', size: 12, weight: 'extrabold' },
+                            padding: 10,
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return ` 体重: ${context.parsed.y.toFixed(2)} kg`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.03)', drawTicks: false },
+                            ticks: { color: '#64748b', font: { size: 9, family: 'Outfit' }, maxRotation: 45 }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawTicks: false },
+                            ticks: { color: '#64748b', font: { size: 10, family: 'Outfit' } }
+                        }
+                    }
+                }
+            });
+
+            updateChartRange('1m'); 
+        }
+
+        function updateChartRange(range) {
+            currentChartRange = range;
+
+            document.querySelectorAll('.range-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-500', 'text-slate-950', 'hover:text-slate-955');
+                btn.classList.add('text-slate-400', 'hover:text-slate-100');
+            });
+
+            const activeBtn = document.getElementById(`btn-range-${range}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400', 'hover:text-slate-100');
+                activeBtn.classList.add('bg-emerald-500', 'text-slate-950', 'hover:text-slate-955');
+            }
+
+            updateChartData();
+        }
+
+        function updateChartData() {
+            if (!weightChartInstance) return;
+
+            const recordedDates = Object.keys(dailyLogs)
+                .filter(dateKey => dailyLogs[dateKey].weight != null)
+                .sort();
+
+            if (recordedDates.length === 0) {
+                weightChartInstance.data.labels = ["データなし"];
+                weightChartInstance.data.datasets[0].data = [0];
+                weightChartInstance.update();
+                document.getElementById('twoWeekBlocksContainer').innerHTML = `
+                    <p class="text-xs text-slate-500 italic">表示する体重ログデータがまだありません。カレンダーの日付を選択するか、右上のクイック入力から体重を記録してください。</p>
+                `;
+                return;
+            }
+
+            const today = new Date();
+            let limitDays = 30; 
+            let filterAll = false;
+
+            switch (currentChartRange) {
+                case '1w': limitDays = 7; break;
+                case '2w': limitDays = 14; break;
+                case '1m': limitDays = 30; break;
+                case '3m': limitDays = 90; break;
+                case '6m': limitDays = 180; break;
+                case '1y': limitDays = 365; break;
+                case 'all': filterAll = true; break;
+            }
+
+            const cutoffDate = new Date();
+            cutoffDate.setDate(today.getDate() - limitDays);
+
+            const filteredDates = filterAll 
+                ? recordedDates 
+                : recordedDates.filter(d => new Date(d) >= cutoffDate);
+
+            const labels = [];
+            const dataPoints = [];
+
+            filteredDates.forEach(dateStr => {
+                const dateObj = new Date(dateStr);
+                const labelFormatted = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+                labels.push(labelFormatted);
+                dataPoints.push(dailyLogs[dateStr].weight);
+            });
+
+            weightChartInstance.data.labels = labels;
+            weightChartInstance.data.datasets[0].data = dataPoints;
+            weightChartInstance.update();
+
+            renderTwoWeekIntervalAnalysis(recordedDates);
+        }
+
+        function renderTwoWeekIntervalAnalysis(allRecordedDates) {
+            const container = document.getElementById('twoWeekBlocksContainer');
+            container.innerHTML = '';
+
+            if (allRecordedDates.length < 2) {
+                container.innerHTML = `
+                    <p class="text-xs text-slate-500 italic">2週間推移を算出するためには、異なる日付で少なくとも2回以上の体重データが必要です。継続して記録しましょう！</p>
+                `;
+                return;
+            }
+
+            const today = new Date();
+            const blocks = []; 
+            
+            for (let i = 0; i < 6; i++) {
+                const endLimit = new Date(today);
+                endLimit.setDate(today.getDate() - (i * 14));
+                const startLimit = new Date(today);
+                startLimit.setDate(today.getDate() - ((i + 1) * 14));
+
+                const slotWeights = [];
+                allRecordedDates.forEach(dateStr => {
+                    const dateObj = new Date(dateStr);
+                    if (dateObj > startLimit && dateObj <= endLimit) {
+                        slotWeights.push(dailyLogs[dateStr].weight);
+                    }
+                });
+
+                if (slotWeights.length > 0) {
+                    const avg = slotWeights.reduce((a, b) => a + b, 0) / slotWeights.length;
+                    blocks.push({
+                        label: i === 0 ? "直近2週間" : `先週から ${i * 2}〜${(i + 1) * 2}週間前`,
+                        average: avg,
+                        count: slotWeights.length
+                    });
+                }
+            }
+
+            if (blocks.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic">直近の期間に記録されたデータがありません。</p>`;
+                return;
+            }
+
+            blocks.forEach((block, idx) => {
+                const div = document.createElement('div');
+                div.className = "bg-slate-950/70 p-3 rounded-xl border border-slate-850 flex items-center justify-between animate-fadeIn";
+                
+                let trendIcon = "";
+                let trendClass = "text-slate-400";
+                let diffText = "";
+
+                if (idx < blocks.length - 1) {
+                    const olderBlock = blocks[idx + 1];
+                    const diff = block.average - olderBlock.average;
+                    
+                    if (diff < -0.05) {
+                        trendIcon = '<i class="fa-solid fa-caret-down text-emerald-400"></i>';
+                        trendClass = "text-emerald-400 font-bold";
+                        diffText = `-${Math.abs(diff).toFixed(2)} kg`;
+                    } else if (diff > 0.05) {
+                        trendIcon = '<i class="fa-solid fa-caret-up text-rose-400"></i>';
+                        trendClass = "text-rose-400 font-bold";
+                        diffText = `+${diff.toFixed(2)} kg`;
+                    } else {
+                        trendIcon = '<i class="fa-solid fa-minus text-slate-500"></i>';
+                        trendClass = "text-slate-500";
+                        diffText = "キープ";
+                    }
+                } else {
+                    trendIcon = '<i class="fa-regular fa-lightbulb text-cyan-400/80"></i>';
+                    trendClass = "text-cyan-400/80 text-[10px]";
+                    diffText = "初期基準ブロック";
+                }
+
+                div.innerHTML = `
+                    <div>
+                        <span class="block text-[10px] text-slate-500 font-bold font-sans">${block.label}</span>
+                        <span class="text-xs font-mono font-black text-slate-200">${block.average.toFixed(2)} <small class="text-[9px] font-normal text-slate-500">kg</small></span>
+                        <span class="text-[9px] text-slate-600 block">データ数: ${block.count}点</span>
+                    </div>
+                    <div class="text-right flex flex-col items-end gap-0.5">
+                        <span class="text-[9px] text-slate-500 uppercase tracking-widest font-extrabold">TREND</span>
+                        <div class="flex items-center gap-1.5 text-xs">
+                            ${trendIcon}
+                            <span class="${trendClass}">${diffText}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
